@@ -8,7 +8,8 @@ CORS(app)
 
 @app.route("/")
 def get_response():
-    return f"<p>{model.get_model_response()[0]["generated_text"][1]["content"]}</p>"
+    response = model.get_model_response()[0]["generated_text"][1]["content"]
+    return {"response": response}, 200
 
 
 if __name__ == "__main__":
