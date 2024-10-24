@@ -1,4 +1,6 @@
 import express from "express";
+import 'dotenv/config';
+import db from "./db.js";
 
 let API_URL = "http://localhost:5000/";
 if (process.env.NODE_ENV === "production") {
