@@ -1,6 +1,6 @@
 import express from "express";
 import "dotenv/config";
-import { login, signup } from "./auth.js";
+import { login, signup, validateJwtToken } from "./auth.js";
 
 let API_URL = "http://localhost:5000/";
 if (process.env.NODE_ENV === "production") {
@@ -14,8 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 /* AUTHENTICATION API ROUTES */
-// TODO: create different error response codes for different failure cases
-app.post("/login", async (req, res) => {
+app.post("/login", async (req, res, next) => {
   try {
     const token = await login(req.body);
     if (!token) {
@@ -23,30 +22,30 @@ app.post("/login", async (req, res) => {
       return;
     }
     res.status(200).send({ response: "Logged in successfully", token });
-  } catch (e) {
-    console.log(e);
-    res.status(500).send({ response: "Error logging in" });
-    return;
+  } catch (err) {
+    next(err);
   }
 });
 
-// TODO: create different error response codes for different failure cases
-app.post("/signup", async (req, res) => {
+// TODO: need to validate the username and password used for signup?
+app.post("/signup", async (req, res, next) => {
   try {
     await signup(req.body);
     res.status(200).send({ response: "Signed up successfully" });
-  } catch (e) {
-    console.log(e);
-    res.status(500).send({ response: "Error signing up" });
-    return;
+  } catch (err) {
+    next(err);
   }
 });
 
 /* MODEL API ROUTES */
-app.get("/api", async (req, res) => {
-  const response = await fetch(API_URL);
-  const data = await response.json();
-  res.send(data);
+app.get("/api", validateJwtToken, async (req, res, next) => {
+  try {
+    const response = await fetch(API_URL);
+    const data = await response.json();
+    res.send(data);
+  } catch (err) {
+    next(err);
+  }
 });
 
 /* FRONTEND ROUTES */

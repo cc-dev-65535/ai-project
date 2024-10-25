@@ -1,10 +1,20 @@
-// fetch("/api")
-//   .then((response) => response.json())
-//   .then((data) => {
-//     const p = document.createElement("p");
-//     p.innerHTML = data.response;
-//     document.body.appendChild(p);
-//   });
+const callApi = () => {
+  fetch("/api", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      const p = document.createElement("p");
+      p.innerHTML = data.response;
+      document.body.appendChild(p);
+    })
+    .catch((error) => {
+      alert(error.toString());
+    });
+};
 
 const login = () => {
   fetch("/login", {
@@ -20,9 +30,9 @@ const login = () => {
     .then((response) => response.json())
     .then((data) => {
       alert(data.response);
+      localStorage.setItem("token", data.token);
     });
 };
-
 
 const signup = () => {
   fetch("/signup", {
