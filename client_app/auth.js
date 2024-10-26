@@ -4,13 +4,13 @@ import crypto from "crypto";
 // TODO: create secure secret in environment variable
 const SECRET = "secret";
 
-const createJwtToken = ({ username, name, permissions }) => {
+const createJwtToken = ({ username, permissions }) => {
   const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" }))
     .toString("base64")
     .replace(/=/g, "")
     .replace(/\+/g, "-")
     .replace(/\//g, "_");
-  const payload = Buffer.from(JSON.stringify({ username, name, permissions }))
+  const payload = Buffer.from(JSON.stringify({ username, permissions }))
     .toString("base64")
     .replace(/=/g, "")
     .replace(/\+/g, "-")
@@ -36,6 +36,7 @@ const validateJwtToken = (req, res, next) => {
     .replace(/\+/g, "-")
     .replace(/\//g, "_");
   if (signature === signatureToVerify) {
+    res.locals.payload = JSON.parse(Buffer.from(payload, "base64").toString());
     next();
   } else {
     res.status(401).send({ response: "Invalid token" });
@@ -51,7 +52,7 @@ const validatePassword = (password, { hash, salt }) => {
 
 // TODO: need to check for query errors or failures? Also, handle sql injection
 const login = async ({ username, password }) => {
-  const [rows] = await db.query("SELECT * FROM users WHERE username = ?", [
+  const [rows] = await db.execute("SELECT * FROM users WHERE username = ?", [
     username,
   ]);
   if (rows.length === 0 || !validatePassword(password, rows[0])) {
@@ -69,12 +70,36 @@ const hashPassword = (password) => {
 };
 
 // TODO: need to check for query errors or failures? Also, handle sql injection
-const signup = async ({ username, name, password }) => {
+const signup = async ({ username, password }) => {
   const { hash, salt } = hashPassword(password);
-  const result = await db.query(
-    "INSERT INTO users (username, name, hash, salt) VALUES (?, ?, ?, ?)",
-    [username, name, hash, salt]
-  );
+
+  let conn = null;
+  try {
+    conn = await db.getConnection();
+    await conn.beginTransaction();
+
+    // create entry in users table for signed up user
+    const userResult = await db.execute(
+      "INSERT INTO users (username, hash, salt) VALUES (?, ?, ?)",
+      [username, hash, salt]
+    );
+    // create entry in api_usage table for signed up user
+    const apiResult = await db.execute(
+      "INSERT INTO api_usage (username) VALUES (?)",
+      [username]
+    );
+
+    await conn.commit();
+  } catch (err) {
+    if (conn) {
+      await conn.rollback();
+    }
+    throw err;
+  } finally {
+    if (conn) {
+      await conn.release();
+    }
+  }
 };
 
 export { login, signup, validateJwtToken };

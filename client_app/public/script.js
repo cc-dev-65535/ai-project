@@ -8,7 +8,7 @@ const callApi = () => {
     .then((response) => response.json())
     .then((data) => {
       const p = document.createElement("p");
-      p.innerHTML = data.response;
+      p.innerHTML = data.data;
       document.body.appendChild(p);
     })
     .catch((error) => {
@@ -29,7 +29,7 @@ const login = () => {
   })
     .then((response) => response.json())
     .then((data) => {
-      alert(data.response);
+      alert(data.message);
       localStorage.setItem("token", data.token);
     });
 };
@@ -42,12 +42,12 @@ const signup = () => {
     },
     body: JSON.stringify({
       username: document.getElementById("signup-user").value,
-      name: document.getElementById("signup-name").value,
+      // name: document.getElementById("signup-name").value,
       password: document.getElementById("signup-pass").value,
     }),
   })
     .then((response) => response.json())
     .then((data) => {
-      alert(data.response);
+      alert(data.message);
     });
 };

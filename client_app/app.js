@@ -1,11 +1,7 @@
 import express from "express";
 import "dotenv/config";
+import { callApi, updateApiCalls } from "./api.js";
 import { login, signup, validateJwtToken } from "./auth.js";
-
-let API_URL = "http://localhost:5000/";
-if (process.env.NODE_ENV === "production") {
-  API_URL = "https://api.example.com/";
-}
 
 const app = express();
 
@@ -18,10 +14,10 @@ app.post("/login", async (req, res, next) => {
   try {
     const token = await login(req.body);
     if (!token) {
-      res.status(401).send({ response: "Invalid username or password" });
+      res.status(401).send({ message: "Invalid username or password" });
       return;
     }
-    res.status(200).send({ response: "Logged in successfully", token });
+    res.status(200).send({ message: "Logged in successfully", token });
   } catch (err) {
     next(err);
   }
@@ -31,7 +27,7 @@ app.post("/login", async (req, res, next) => {
 app.post("/signup", async (req, res, next) => {
   try {
     await signup(req.body);
-    res.status(200).send({ response: "Signed up successfully" });
+    res.status(200).send({ message: "Signed up successfully" });
   } catch (err) {
     next(err);
   }
@@ -40,9 +36,14 @@ app.post("/signup", async (req, res, next) => {
 /* MODEL API ROUTES */
 app.get("/api", validateJwtToken, async (req, res, next) => {
   try {
-    const response = await fetch(API_URL);
-    const data = await response.json();
-    res.send(data);
+    const response = await callApi();
+    if (response.ok) {
+      const data = await response.json();
+      await updateApiCalls(res.locals.payload.username);
+      res.status(200).send(data);
+    } else {
+      throw new Error("API call failed");
+    }
   } catch (err) {
     next(err);
   }
