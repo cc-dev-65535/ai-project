@@ -1,6 +1,6 @@
 import express from "express";
 import "dotenv/config";
-import { callApi, updateApiCalls } from "./api.js";
+import { callApi, updateApiCallsCount } from "./api.js";
 import { login, signup, validateJwtToken } from "./auth.js";
 
 const app = express();
@@ -39,7 +39,7 @@ app.get("/api", validateJwtToken, async (req, res, next) => {
     const response = await callApi();
     if (response.ok) {
       const data = await response.json();
-      await updateApiCalls(res.locals.payload.username);
+      await updateApiCallsCount(res.locals.payload.username);
       res.status(200).send(data);
     } else {
       throw new Error("API call failed");

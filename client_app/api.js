@@ -10,7 +10,45 @@ const callApi = async () => {
   return response;
 };
 
-const updateApiCalls = async (username) => {
+const updateApiCallsCount = async (username) => {
+  let conn = null;
+  try {
+    conn = await db.getConnection();
+    await conn.beginTransaction();
+
+    // get the current api_calls count
+    const [rows] = await db.execute(
+      "SELECT * FROM api_usage WHERE username = ?",
+      [username]
+    );
+    if (rows.length === 0) {
+      throw new Error("db error, user not found");
+    }
+    const apiCalls = rows[0].api_calls + 1;
+    // update the api_calls count
+    const [response] = await db.execute(
+      "UPDATE api_usage SET api_calls = ? WHERE username = ?",
+      [apiCalls, username]
+    );
+    if (response.affectedRows === 0) {
+      throw new Error("db error, failed to update api_calls column");
+    }
+
+    await conn.commit();
+  } catch (err) {
+    if (conn) {
+      await conn.rollback();
+    }
+    throw err;
+  } finally {
+    if (conn) {
+      conn.release();
+    }
+  }
+};
+
+const getApiCallsCount = async (username) => {
+  // get the current api_calls count
   const [rows] = await db.execute(
     "SELECT * FROM api_usage WHERE username = ?",
     [username]
@@ -18,16 +56,7 @@ const updateApiCalls = async (username) => {
   if (rows.length === 0) {
     throw new Error("db error, user not found");
   }
-  const apiCalls = rows[0].api_calls + 1;
-  const [response] = await db.execute(
-    "UPDATE api_usage SET api_calls = ? WHERE username = ?",
-    [apiCalls, username]
-  );
-  console.log(response.affectedRows);
+  return rows[0].api_calls;
 };
 
-const getApiCalls = async (username) => {
-
-}
-
-export { callApi, updateApiCalls };
+export { callApi, updateApiCallsCount, getApiCallsCount };

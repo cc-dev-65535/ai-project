@@ -97,7 +97,7 @@ const signup = async ({ username, password }) => {
     throw err;
   } finally {
     if (conn) {
-      await conn.release();
+      conn.release();
     }
   }
 };
