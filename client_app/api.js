@@ -5,6 +5,7 @@ if (process.env.NODE_ENV === "production") {
   API_URL = "https://api.example.com/";
 }
 
+// TODO: need to add an api key for the api?
 const callApi = async () => {
   const response = await fetch(API_URL);
   return response;

@@ -1,0 +1,23 @@
+{
+  "name": "react_app",
+  "version": "1.0.0",
+  "source": "index.html",
+  "type": "module",
+  "scripts": {
+    "start": "parcel",
+    "build": "parcel build --dist-dir public",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "parcel": "^2.12.0",
+    "process": "^0.11.10"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.27.0"
+  }
+}
