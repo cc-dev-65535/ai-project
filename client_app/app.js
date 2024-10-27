@@ -2,8 +2,13 @@ import express from "express";
 import "dotenv/config";
 import { callApi, updateApiCallsCount } from "./api.js";
 import { login, signup, validateJwtToken } from "./auth.js";
+import cors from "cors";
 
 const app = express();
+
+if (process.env.NODE_ENV !== "production") {
+  app.use(cors());
+}
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
