@@ -3,22 +3,38 @@ import MainLayout from "./MainLayout";
 import Home from "./Home";
 import Signup from "./Signup";
 import Login from "./Login";
+import Logout from "./Logout";
+import { AuthContext, getTokenPayload, isLoggedIn } from "./auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
 
 export function App() {
   const queryClient = new QueryClient();
+  const [authState, setAuthState] = useState({
+    status: isLoggedIn(),
+    user: getTokenPayload(),
+  });
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<MainLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="signup" element={<Signup />} />
-            <Route path="login" element={<Login />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <AuthContext.Provider value={authState}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<MainLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="signup" element={<Signup />} />
+              <Route
+                path="login"
+                element={<Login setAuthState={setAuthState} />}
+              />
+              <Route
+                path="logout"
+                element={<Logout setAuthState={setAuthState} />}
+              />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AuthContext.Provider>
     </QueryClientProvider>
   );
 }
