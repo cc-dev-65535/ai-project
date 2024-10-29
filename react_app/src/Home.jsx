@@ -6,7 +6,25 @@ const Home = () => {
   const { status, user } = useContext(AuthContext);
   console.log(user);
 
-  return <>{status ? <UserHome /> : <h1>Not logged in</h1>}</>;
+  if (!status) {
+    return <h1>Not logged in</h1>;
+  }
+
+  return (
+    <>
+      {user.permissions === "USER" ? (
+        <>
+          <h1>User Home</h1>
+          <UserHome />
+        </>
+      ) : (
+        <>
+          <h1>Admin Home</h1>
+          <AdminHome />
+        </>
+      )}
+    </>
+  );
 };
 
 const getModelResponse = async () => {
@@ -30,13 +48,40 @@ const UserHome = () => {
         console.log(jsonData);
         setModelText(jsonData.data);
       } else {
-        alert("Some error occurred");
+        console.log(data);
+        setModelText("Some error occurred");
       }
     },
   });
 
   return (
     <>
+      <button onClick={mutateAsync}>Get model response</button>
+      <p>{modelText}</p>
+    </>
+  );
+};
+
+const AdminHome = () => {
+  const [modelText, setModelText] = useState("");
+
+  const { mutateAsync } = useMutation({
+    mutationFn: getModelResponse,
+    onSuccess: async (data) => {
+      if (data.ok) {
+        jsonData = await data.json();
+        console.log(jsonData);
+        setModelText(jsonData.data);
+      } else {
+        console.log(data);
+        setModelText("Some error occurred");
+      }
+    },
+  });
+
+  return (
+    <>
+      <p>Admin stuff goes here</p>
       <button onClick={mutateAsync}>Get model response</button>
       <p>{modelText}</p>
     </>

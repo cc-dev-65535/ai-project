@@ -23,8 +23,7 @@ const Signup = () => {
 
   const { mutateAsync } = useMutation({
     mutationFn: postSignup,
-    onSuccess: () => {
-      // queryClient.invalidateQueries({ queryKey: ['todos'] })
+    onSuccess: (data) => {
       if (data.ok) {
         navigate("/login");
       } else {
