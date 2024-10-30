@@ -1,13 +1,19 @@
 import db from "./db.js";
 
-let API_URL = "http://localhost:5000/";
+let API_URL = "http://localhost:5001/";
 if (process.env.NODE_ENV === "production") {
   API_URL = "https://api.example.com/";
 }
 
 // TODO: need to add an api key for the api?
-const callApi = async () => {
-  const response = await fetch(API_URL);
+const callApi = async ({ input }) => {
+  const response = await fetch(API_URL + "api", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ input }),
+  });
   return response;
 };
 

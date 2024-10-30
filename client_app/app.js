@@ -39,9 +39,9 @@ app.post("/signup", async (req, res, next) => {
 });
 
 /* MODEL API ROUTES */
-app.get("/api", validateJwtToken, async (req, res, next) => {
+app.post("/api", validateJwtToken, async (req, res, next) => {
   try {
-    const response = await callApi();
+    const response = await callApi(req.body);
     if (response.ok) {
       const data = await response.json();
       await updateApiCallsCount(res.locals.payload.username);

@@ -4,7 +4,7 @@ const MainLayout = () => {
   return (
     <>
       <header>
-        <h1>My App</h1>
+        <h1>Story Generator App</h1>
         <div style={{ display: "flex", gap: "20px" }}>
           <Link to="/">Home</Link>
           <Link to="signup">Signup</Link>

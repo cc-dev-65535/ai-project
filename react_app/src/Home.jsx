@@ -27,18 +27,27 @@ const Home = () => {
   );
 };
 
-const getModelResponse = async () => {
+const getModelResponse = async ({ inputText }) => {
   const response = await fetch("http://localhost:4000/api", {
-    method: "GET",
+    method: "POST",
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
     },
+    body: JSON.stringify({
+      input: inputText,
+    }),
   });
   return response;
 };
 
 const UserHome = () => {
   const [modelText, setModelText] = useState("");
+  const [inputText, setInputText] = useState("");
+
+  const onInputChange = (event) => {
+    setInputText(event.target.value);
+  };
 
   const { mutateAsync } = useMutation({
     mutationFn: getModelResponse,
@@ -56,14 +65,27 @@ const UserHome = () => {
 
   return (
     <>
-      <button onClick={mutateAsync}>Get model response</button>
-      <p>{modelText}</p>
+      <input
+        type="text"
+        placeholder="Enter story prompt"
+        value={inputText}
+        onChange={onInputChange}
+      />
+      <button onClick={() => mutateAsync({ inputText })}>
+        Get model response
+      </button>
+      <p style={{ whiteSpace: "pre-wrap" }}>{modelText}</p>
     </>
   );
 };
 
 const AdminHome = () => {
   const [modelText, setModelText] = useState("");
+  const [inputText, setInputText] = useState("");
+
+  const onInputChange = (event) => {
+    setInputText(event.target.value);
+  };
 
   const { mutateAsync } = useMutation({
     mutationFn: getModelResponse,
@@ -82,8 +104,16 @@ const AdminHome = () => {
   return (
     <>
       <p>Admin stuff goes here</p>
-      <button onClick={mutateAsync}>Get model response</button>
-      <p>{modelText}</p>
+      <input
+        type="text"
+        placeholder="Enter story prompt"
+        value={inputText}
+        onChange={onInputChange}
+      />
+      <button onClick={() => mutateAsync({ inputText })}>
+        Get model response
+      </button>
+      <p style={{ whiteSpace: "pre-wrap" }}>{modelText}</p>
     </>
   );
 };

@@ -4,8 +4,7 @@ tokenizer = GPT2Tokenizer.from_pretrained("Tincando/fiction_story_generator")
 model = GPTNeoForCausalLM.from_pretrained("Tincando/fiction_story_generator")
 
 
-def get_model_response():
-    input_prompt = "a story about a dragon"
+def get_model_response(input_prompt):
     input_ids = tokenizer(
         input_prompt, add_special_tokens=False, return_tensors="pt"
     ).input_ids
