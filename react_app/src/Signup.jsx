@@ -2,8 +2,11 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const URL =
+  process.env.NODE_ENV === "production" ? "/signup" : "http://localhost:4000";
+
 const postSignup = async ({ username, password }) => {
-  const response = await fetch("http://localhost:4000/signup", {
+  const response = await fetch(URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

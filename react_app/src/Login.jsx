@@ -3,8 +3,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login, getTokenPayload } from "./auth";
 
+const URL =
+  process.env.NODE_ENV === "production" ? "/login" : "http://localhost:4000";
+
 const postLogin = async ({ username, password }) => {
-  const response = await fetch("http://localhost:4000/login", {
+  const response = await fetch(URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -26,7 +29,7 @@ const Login = ({ setAuthState }) => {
     mutationFn: postLogin,
     onSuccess: async (data) => {
       if (data.ok) {
-        jsonData = await data.json();
+        const jsonData = await data.json();
         login(jsonData.token);
         setAuthState({
           status: true,

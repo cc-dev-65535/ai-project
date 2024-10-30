@@ -1,0 +1,12 @@
+[Unit]
+Description=Flask web application
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/root/ai-project/api_server
+ExecStart=/root/ai-project/api_server/.venv/bin/python /root/ai-project/api_server/app.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

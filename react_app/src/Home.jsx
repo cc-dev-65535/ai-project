@@ -2,6 +2,9 @@ import { useContext, useState } from "react";
 import { AuthContext } from "./auth";
 import { useMutation } from "@tanstack/react-query";
 
+const URL =
+  process.env.NODE_ENV === "production" ? "/api" : "http://localhost:4000";
+
 const Home = () => {
   const { status, user } = useContext(AuthContext);
   console.log(user);
@@ -28,7 +31,7 @@ const Home = () => {
 };
 
 const getModelResponse = async ({ inputText }) => {
-  const response = await fetch("http://localhost:4000/api", {
+  const response = await fetch(URL, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -53,7 +56,7 @@ const UserHome = () => {
     mutationFn: getModelResponse,
     onSuccess: async (data) => {
       if (data.ok) {
-        jsonData = await data.json();
+        const jsonData = await data.json();
         console.log(jsonData);
         setModelText(jsonData.data);
       } else {
@@ -91,7 +94,7 @@ const AdminHome = () => {
     mutationFn: getModelResponse,
     onSuccess: async (data) => {
       if (data.ok) {
-        jsonData = await data.json();
+        const jsonData = await data.json();
         console.log(jsonData);
         setModelText(jsonData.data);
       } else {

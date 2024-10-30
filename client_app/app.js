@@ -3,6 +3,7 @@ import "dotenv/config";
 import { callApi, updateApiCallsCount } from "./api.js";
 import { login, signup, validateJwtToken } from "./auth.js";
 import cors from "cors";
+import path from "path";
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.post("/api", validateJwtToken, async (req, res, next) => {
       throw new Error("API call failed");
     }
   } catch (err) {
+    console.log(err);
     next(err);
   }
 });
