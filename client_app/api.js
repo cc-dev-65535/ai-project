@@ -1,8 +1,8 @@
 import db from "./db.js";
 
-let API_URL = "http://localhost:5001/";
+let API_URL = "https://localhost:5001/";
 if (process.env.NODE_ENV === "production") {
-  API_URL = "https://api.example.com/";
+  API_URL = "https://164.90.154.129:5001/";
 }
 
 // TODO: need to add an api key for the api?
