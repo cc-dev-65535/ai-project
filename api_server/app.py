@@ -8,7 +8,7 @@ CORS(app)
 
 @app.route("/")
 def get_response():
-    response = model.get_model_response()[0]["generated_text"][1]["content"]
+    response = model.get_model_response()
     return {"data": response}, 200
 
 
