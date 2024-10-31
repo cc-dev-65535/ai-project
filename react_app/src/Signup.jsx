@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const URL =
-  process.env.NODE_ENV === "production" ? "/signup" : "http://localhost:4000";
+  process.env.NODE_ENV === "production" ? "/signup" : "http://localhost:4000/signup";
 
 const postSignup = async ({ username, password }) => {
   const response = await fetch(URL, {

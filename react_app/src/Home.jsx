@@ -3,7 +3,7 @@ import { AuthContext } from "./auth";
 import { useMutation } from "@tanstack/react-query";
 
 const URL =
-  process.env.NODE_ENV === "production" ? "/api" : "http://localhost:4000";
+  process.env.NODE_ENV === "production" ? "/api" : "http://localhost:4000/api";
 
 const Home = () => {
   const { status, user } = useContext(AuthContext);
@@ -47,6 +47,7 @@ const getModelResponse = async ({ inputText }) => {
 const UserHome = () => {
   const [modelText, setModelText] = useState("");
   const [inputText, setInputText] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const onInputChange = (event) => {
     setInputText(event.target.value);
@@ -64,6 +65,9 @@ const UserHome = () => {
         setModelText("Some error occurred");
       }
     },
+    onSettled: () => {
+      setLoading(false);
+    },
   });
 
   return (
@@ -74,9 +78,16 @@ const UserHome = () => {
         value={inputText}
         onChange={onInputChange}
       />
-      <button onClick={() => mutateAsync({ inputText })}>
+      <button
+        onClick={() => {
+          setLoading(true);
+          setModelText("");
+          mutateAsync({ inputText });
+        }}
+      >
         Get model response
       </button>
+      {loading && <p>Loading...</p>}
       <p style={{ whiteSpace: "pre-wrap" }}>{modelText}</p>
     </>
   );
@@ -85,6 +96,7 @@ const UserHome = () => {
 const AdminHome = () => {
   const [modelText, setModelText] = useState("");
   const [inputText, setInputText] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const onInputChange = (event) => {
     setInputText(event.target.value);
@@ -101,6 +113,9 @@ const AdminHome = () => {
         console.log(data);
         setModelText("Some error occurred");
       }
+    },
+    onSettled: () => {
+      setLoading(false);
     },
   });
 
@@ -113,9 +128,16 @@ const AdminHome = () => {
         value={inputText}
         onChange={onInputChange}
       />
-      <button onClick={() => mutateAsync({ inputText })}>
+      <button
+        onClick={() => {
+          setLoading(true);
+          setModelText("");
+          mutateAsync({ inputText });
+        }}
+      >
         Get model response
       </button>
+      {loading && <p>Loading...</p>}
       <p style={{ whiteSpace: "pre-wrap" }}>{modelText}</p>
     </>
   );
