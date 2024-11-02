@@ -1,6 +1,11 @@
 import express from "express";
 import "dotenv/config";
-import { callApi, updateApiCallsCount } from "./api.js";
+import {
+  callApi,
+  updateApiCallsCount,
+  getApiCallsCount,
+  getApiCallsCountUser,
+} from "./api.js";
 import { login, signup, validateJwtToken } from "./auth.js";
 import cors from "cors";
 import path from "path";
@@ -56,8 +61,20 @@ app.post("/api", validateJwtToken, async (req, res, next) => {
   }
 });
 
+/* API CALLS USAGE ROUTES */
+// TODO: add admin check for this function
+app.get("/api-calls", validateJwtToken, async (req, res, next) => {
+  try {
+    const data = await getApiCallsCount();
+    res.status(200).send({ data });
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+});
+
 /* FRONTEND ROUTES */
-app.get("/", (req, res) => {
+app.get("*", (req, res) => {
   res.sendFile("index.html", { root: path.join(path.resolve(), "public") });
 });
 

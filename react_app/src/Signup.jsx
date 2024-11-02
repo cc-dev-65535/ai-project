@@ -36,6 +36,8 @@ const Signup = () => {
   });
 
   return (
+    <div>
+    <h1>Signup</h1>
     <form
       onSubmit={(event) => {
         event.preventDefault();
@@ -60,6 +62,7 @@ const Signup = () => {
       </div>
       <button type="submit">Signup</button>
     </form>
+    </div>
   );
 };
 

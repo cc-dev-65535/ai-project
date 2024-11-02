@@ -4,7 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { login, getTokenPayload } from "./auth";
 
 const URL =
-  process.env.NODE_ENV === "production" ? "/login" : "http://localhost:4000/login";
+  process.env.NODE_ENV === "production"
+    ? "/login"
+    : "http://localhost:4000/login";
 
 const postLogin = async ({ username, password }) => {
   const response = await fetch(URL, {
@@ -43,30 +45,33 @@ const Login = ({ setAuthState }) => {
   });
 
   return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault();
-        mutateAsync({ username, password });
-      }}
-    >
-      <div>
-        <label>Username</label>
-        <input
-          type="text"
-          value={username}
-          onChange={(event) => setUsername(event.target.value)}
-        />
-      </div>
-      <div>
-        <label>Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-        />
-      </div>
-      <button type="submit">Login</button>
-    </form>
+    <div>
+      <h1>Login</h1>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          mutateAsync({ username, password });
+        }}
+      >
+        <div>
+          <label>Username</label>
+          <input
+            type="text"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+          />
+        </div>
+        <div>
+          <label>Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+          />
+        </div>
+        <button type="submit">Login</button>
+      </form>
+    </div>
   );
 };
 

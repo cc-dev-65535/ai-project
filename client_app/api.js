@@ -54,7 +54,7 @@ const updateApiCallsCount = async (username) => {
   }
 };
 
-const getApiCallsCount = async (username) => {
+const getApiCallsCountUser = async (username) => {
   // get the current api_calls count
   const [rows] = await db.execute(
     "SELECT * FROM api_usage WHERE username = ?",
@@ -66,4 +66,13 @@ const getApiCallsCount = async (username) => {
   return rows[0].api_calls;
 };
 
-export { callApi, updateApiCallsCount, getApiCallsCount };
+const getApiCallsCount = async () => {
+  // get the current api_calls count
+  const [rows] = await db.execute("SELECT * FROM api_usage");
+  if (rows.length === 0) {
+    throw new Error("db error");
+  }
+  return rows;
+};
+
+export { callApi, updateApiCallsCount, getApiCallsCountUser, getApiCallsCount };
