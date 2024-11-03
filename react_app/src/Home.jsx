@@ -11,6 +11,7 @@ const API_CALL_URL =
 
 const Home = () => {
   const { status, user } = useContext(AuthContext);
+  console.log(user);
 
   if (!status) {
     return <h1 className="text-center">Please log in to continue</h1>;
@@ -31,3 +32,163 @@ const Home = () => {
     </div>
   );
 };
+
+const getModelResponse = async ({ inputText }) => {
+  const response = await fetch(MODEL_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      input: inputText,
+    }),
+  });
+  return response;
+};
+
+const getApiCalls = async () => {
+  const response = await fetch(API_CALL_URL, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  if (response.ok) {
+    return await response.json();
+  } else {
+    throw new Error("An error occurred in fetching API calls");
+  }
+};
+
+const UserHome = () => {
+  const [modelText, setModelText] = useState("");
+  const [inputText, setInputText] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const onInputChange = (event) => {
+    setInputText(event.target.value);
+  };
+
+  const { mutateAsync } = useMutation({
+    mutationFn: getModelResponse,
+    onSuccess: async (data) => {
+      if (data.ok) {
+        const jsonData = await data.json();
+        setModelText(jsonData.data);
+      } else {
+        setModelText("Some error occurred");
+      }
+    },
+    onSettled: () => {
+      setLoading(false);
+    },
+  });
+
+  return (
+    <>
+      <div className="d-flex flex-column" style={{ width: "250px", gap: "10px" }}>
+        <input
+          type="text"
+          placeholder="Enter story prompt"
+          value={inputText}
+          onChange={onInputChange}
+          className="form-control"
+        />
+        <button
+          onClick={() => {
+            setLoading(true);
+            setModelText("");
+            mutateAsync({ inputText });
+          }}
+          className="btn btn-primary"
+        >
+          Get model response
+        </button>
+      </div>
+      {loading && <p>Loading...</p>}
+      <p style={{ whiteSpace: "pre-wrap" }}>{modelText}</p>
+    </>
+  );
+};
+
+const AdminHome = () => {
+  const [modelText, setModelText] = useState("");
+  const [inputText, setInputText] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const { isLoading, isError, data } = useQuery({
+    queryKey: ["api-calls"],
+    queryFn: getApiCalls,
+  });
+
+  const onInputChange = (event) => {
+    setInputText(event.target.value);
+  };
+
+  const { mutateAsync } = useMutation({
+    mutationFn: getModelResponse,
+    onSuccess: async (data) => {
+      if (data.ok) {
+        const jsonData = await data.json();
+        setModelText(jsonData.data);
+      } else {
+        setModelText("Some error occurred");
+      }
+    },
+    onSettled: () => {
+      setLoading(false);
+    },
+  });
+
+  return (
+    <>
+      <div className="mb-3">
+        <h3>Admin Dashboard</h3>
+        {isLoading && <p>Loading data...</p>}
+        {isError && <p>Error loading data</p>}
+        {data && (
+          <table className="table table-bordered mt-3">
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>API Calls</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.data.map((user, index) => (
+                <tr key={index}>
+                  <td>{user.username}</td>
+                  <td>{user.api_calls}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      <div className="d-flex flex-column" style={{ width: "250px", gap: "10px" }}>
+        <input
+          type="text"
+          placeholder="Enter story prompt"
+          value={inputText}
+          onChange={onInputChange}
+          className="form-control"
+        />
+        <button
+          onClick={() => {
+            setLoading(true);
+            setModelText("");
+            mutateAsync({ inputText });
+          }}
+          className="btn btn-primary"
+        >
+          Get model response
+        </button>
+      </div>
+      {loading && <p>Loading...</p>}
+      <p style={{ whiteSpace: "pre-wrap" }}>{modelText}</p>
+    </>
+  );
+};
+
+export default Home;
