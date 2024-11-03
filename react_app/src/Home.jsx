@@ -44,11 +44,13 @@ const getModelResponse = async ({ inputText }) => {
     }),
   });
 
-  // Only parse JSON if response is okay
-  if (response.ok) {
-    return await response.json();
-  } else {
-    throw new Error("Error fetching model response");
+  try {
+    const data = await response.json(); // Try parsing JSON
+    if (!response.ok) throw new Error(data.error || "Error fetching model response");
+    return data;
+  } catch (error) {
+    // If JSON parsing fails, it might have returned HTML, indicating a server error
+    throw new Error("Server returned an invalid response. Check if the server is running and accessible.");
   }
 };
 
@@ -59,10 +61,14 @@ const getApiCalls = async () => {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
   });
-  if (response.ok) {
-    return await response.json();
-  } else {
-    throw new Error("An error occurred in fetching API calls");
+
+  try {
+    const data = await response.json(); // Try parsing JSON
+    if (!response.ok) throw new Error("Error fetching API call data");
+    return data;
+  } catch (error) {
+    // If JSON parsing fails, it might have returned HTML, indicating a server error
+    throw new Error("Server returned an invalid response. Check if the server is running and accessible.");
   }
 };
 
@@ -70,6 +76,7 @@ const UserHome = () => {
   const [modelText, setModelText] = useState("");
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const onInputChange = (event) => {
     setInputText(event.target.value);
@@ -79,9 +86,11 @@ const UserHome = () => {
     mutationFn: getModelResponse,
     onSuccess: (data) => {
       setModelText(data.data);
+      setError(null); // Clear previous errors
     },
-    onError: () => {
-      setModelText("An error occurred while getting the model response");
+    onError: (error) => {
+      setError(error.message);
+      setModelText("");
     },
     onSettled: () => {
       setLoading(false);
@@ -108,6 +117,7 @@ const UserHome = () => {
         Get model response
       </button>
       {loading && <p>Loading...</p>}
+      {error && <p style={{ color: "red" }}>Error: {error}</p>}
       <p style={{ whiteSpace: "pre-wrap" }}>{modelText}</p>
     </div>
   );
@@ -117,6 +127,7 @@ const AdminHome = () => {
   const [modelText, setModelText] = useState("");
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const { isLoading, isError, data } = useQuery({
     queryKey: ["api-calls"],
@@ -131,9 +142,11 @@ const AdminHome = () => {
     mutationFn: getModelResponse,
     onSuccess: (data) => {
       setModelText(data.data);
+      setError(null); // Clear previous errors
     },
-    onError: () => {
-      setModelText("An error occurred while getting the model response");
+    onError: (error) => {
+      setError(error.message);
+      setModelText("");
     },
     onSettled: () => {
       setLoading(false);
@@ -183,6 +196,7 @@ const AdminHome = () => {
         </button>
       </div>
       {loading && <p>Loading...</p>}
+      {error && <p style={{ color: "red" }}>Error: {error}</p>}
       <p style={{ whiteSpace: "pre-wrap" }}>{modelText}</p>
     </div>
   );
