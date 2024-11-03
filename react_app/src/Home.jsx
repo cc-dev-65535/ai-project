@@ -8,6 +8,10 @@ const API_CALL_URL =
   process.env.NODE_ENV === "production"
     ? "/api-calls"
     : "http://localhost:4000/api-calls";
+const API_CALL_USER_URL =
+  process.env.NODE_ENV === "production"
+    ? "/api-calls-user"
+    : "http://localhost:4000/api-calls";
 
 const Home = () => {
   const { status, user } = useContext(AuthContext);
@@ -57,8 +61,28 @@ const getModelResponse = async ({ inputText }) => {
   }
 };
 
-const getApiCalls = async () => {
+const getApiCallsAdmin = async () => {
   const response = await fetch(API_CALL_URL, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+
+  try {
+    const data = await response.json(); // Try parsing JSON
+    if (!response.ok) throw new Error("Error fetching API call data");
+    return data;
+  } catch (error) {
+    // If JSON parsing fails, it might have returned HTML, indicating a server error
+    throw new Error(
+      "Server returned an invalid response. Check if the server is running and accessible."
+    );
+  }
+};
+
+const getApiCallsUser = async () => {
+  const response = await fetch(API_CALL_USER_URL, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -82,6 +106,13 @@ const UserHome = () => {
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { status, user } = useContext(AuthContext);
+  const queryClient = useQueryClient();
+
+  const { isLoading, isError, data } = useQuery({
+    queryKey: ["api-calls", user.username],
+    queryFn: getApiCallsUser,
+  });
 
   const onInputChange = (event) => {
     setInputText(event.target.value);
@@ -98,12 +129,14 @@ const UserHome = () => {
       setModelText("");
     },
     onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["api-calls"] });
       setLoading(false);
     },
   });
 
   return (
     <div className="d-flex flex-column" style={{ width: "250px", gap: "10px" }}>
+      <p>Current API calls: {data?.data?.api_calls}</p>
       <input
         type="text"
         placeholder="Enter story prompt"
@@ -137,7 +170,7 @@ const AdminHome = () => {
 
   const { isLoading, isError, data } = useQuery({
     queryKey: ["api-calls"],
-    queryFn: getApiCalls,
+    queryFn: getApiCallsAdmin,
   });
 
   const onInputChange = (event) => {

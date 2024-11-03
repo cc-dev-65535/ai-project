@@ -63,7 +63,7 @@ const getApiCallsCountUser = async (username) => {
   if (rows.length === 0) {
     throw new Error("db error, user not found");
   }
-  return rows[0].api_calls;
+  return rows[0];
 };
 
 const getApiCallsCount = async () => {

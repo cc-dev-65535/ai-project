@@ -73,6 +73,16 @@ app.get("/api-calls", validateJwtToken, async (req, res, next) => {
   }
 });
 
+app.get("/api-calls-user", validateJwtToken, async (req, res, next) => {
+  try {
+    const data = await getApiCallsCountUser(res.locals.payload.username);
+    res.status(200).send({ data });
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+});
+
 /* FRONTEND ROUTES */
 app.get("*", (req, res) => {
   res.sendFile("index.html", { root: path.join(path.resolve(), "public") });
