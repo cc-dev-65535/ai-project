@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import { AuthContext } from "./auth";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const MODEL_URL =
   process.env.NODE_ENV === "production" ? "/api" : "http://localhost:4000/api";
@@ -46,11 +46,14 @@ const getModelResponse = async ({ inputText }) => {
 
   try {
     const data = await response.json(); // Try parsing JSON
-    if (!response.ok) throw new Error(data.error || "Error fetching model response");
+    if (!response.ok)
+      throw new Error(data.error || "Error fetching model response");
     return data;
   } catch (error) {
     // If JSON parsing fails, it might have returned HTML, indicating a server error
-    throw new Error("Server returned an invalid response. Check if the server is running and accessible.");
+    throw new Error(
+      "Server returned an invalid response. Check if the server is running and accessible."
+    );
   }
 };
 
@@ -68,7 +71,9 @@ const getApiCalls = async () => {
     return data;
   } catch (error) {
     // If JSON parsing fails, it might have returned HTML, indicating a server error
-    throw new Error("Server returned an invalid response. Check if the server is running and accessible.");
+    throw new Error(
+      "Server returned an invalid response. Check if the server is running and accessible."
+    );
   }
 };
 
@@ -128,6 +133,7 @@ const AdminHome = () => {
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
 
   const { isLoading, isError, data } = useQuery({
     queryKey: ["api-calls"],
@@ -149,6 +155,7 @@ const AdminHome = () => {
       setModelText("");
     },
     onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["api-calls"] });
       setLoading(false);
     },
   });
@@ -176,7 +183,10 @@ const AdminHome = () => {
           </tbody>
         </table>
       )}
-      <div className="d-flex flex-column" style={{ width: "250px", gap: "10px", marginTop: "20px" }}>
+      <div
+        className="d-flex flex-column"
+        style={{ width: "250px", gap: "10px", marginTop: "20px" }}
+      >
         <input
           type="text"
           placeholder="Enter story prompt"

@@ -8,8 +8,9 @@ import { AuthContext, getTokenPayload, isLoggedIn } from "./auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 
+const queryClient = new QueryClient();
+
 export function App() {
-  const queryClient = new QueryClient();
   const [authState, setAuthState] = useState({
     status: isLoggedIn(),
     user: getTokenPayload(),
