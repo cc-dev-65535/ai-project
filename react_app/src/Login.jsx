@@ -4,9 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { login, getTokenPayload } from "./auth";
 
 const URL =
-  process.env.NODE_ENV === "production"
-    ? "/login"
-    : "http://localhost:4000/login";
+  process.env.NODE_ENV === "production" ? "/login" : "http://localhost:4000/login";
 
 const postLogin = async ({ username, password }) => {
   const response = await fetch(URL, {
@@ -45,32 +43,44 @@ const Login = ({ setAuthState }) => {
   });
 
   return (
-    <div>
-      <h1>Login</h1>
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          mutateAsync({ username, password });
-        }}
-      >
-        <div>
-          <label>Username</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-          />
+    <div className="container mt-5">
+      <div className="row justify-content-center">
+        <div className="col-md-6">
+          <div className="card shadow p-4">
+            <h2 className="text-center mb-4">Login</h2>
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                mutateAsync({ username, password });
+              }}
+            >
+              <div className="form-group">
+                <label>Username</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                />
+              </div>
+              <button type="submit" className="btn btn-primary btn-block">
+                Login
+              </button>
+            </form>
+          </div>
         </div>
-        <div>
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-        </div>
-        <button type="submit">Login</button>
-      </form>
+      </div>
     </div>
   );
 };
