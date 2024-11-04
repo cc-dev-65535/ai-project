@@ -136,7 +136,10 @@ const UserHome = () => {
 
   return (
     <div className="d-flex flex-column" style={{ width: "250px", gap: "10px" }}>
-      <p>Current API calls: {data?.data?.api_calls}</p>
+      <p>Current API calls: {data?.data?.api_calls ?? "loading..."}</p>
+      {(data?.data?.api_calls ?? 0) > 20 && (
+        <p>Warning: maxed free API calls</p>
+      )}
       <input
         type="text"
         placeholder="Enter story prompt"
