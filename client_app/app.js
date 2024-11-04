@@ -62,8 +62,11 @@ app.post("/api", validateJwtToken, async (req, res, next) => {
 });
 
 /* API CALLS USAGE ROUTES */
-// TODO: add admin check for this function
 app.get("/api-calls", validateJwtToken, async (req, res, next) => {
+  if (res.locals.payload.permissions !== "ADMIN") {
+    res.status(403).send({ message: "Forbidden" });
+    return;
+  }
   try {
     const data = await getApiCallsCount();
     res.status(200).send({ data });
