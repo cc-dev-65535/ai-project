@@ -6,6 +6,7 @@ import {
   getApiCallsCount,
   getApiCallsCountUser,
 } from "./api.js";
+import { sanitizeJsonBody } from "./xss.js";
 import { login, signup, validateJwtToken } from "./auth.js";
 import cors from "cors";
 import path from "path";
@@ -21,7 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 /* AUTHENTICATION API ROUTES */
-app.post("/login", async (req, res, next) => {
+app.post("/login", sanitizeJsonBody, async (req, res, next) => {
   try {
     const token = await login(req.body);
     if (!token) {
@@ -34,8 +35,8 @@ app.post("/login", async (req, res, next) => {
   }
 });
 
-// TODO: need to validate the username and password used for signup?
-app.post("/signup", async (req, res, next) => {
+// TODO: need to validate the username and password used for signup? block symbols
+app.post("/signup", sanitizeJsonBody, async (req, res, next) => {
   try {
     await signup(req.body);
     res.status(200).send({ message: "Signed up successfully" });
@@ -45,7 +46,7 @@ app.post("/signup", async (req, res, next) => {
 });
 
 /* MODEL API ROUTES */
-app.post("/api", validateJwtToken, async (req, res, next) => {
+app.post("/api", validateJwtToken, sanitizeJsonBody, async (req, res, next) => {
   try {
     const response = await callApi(req.body);
     if (response.ok) {

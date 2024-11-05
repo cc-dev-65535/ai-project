@@ -11,7 +11,7 @@ const API_CALL_URL =
 const API_CALL_USER_URL =
   process.env.NODE_ENV === "production"
     ? "/api-calls-user"
-    : "http://localhost:4000/api-calls";
+    : "http://localhost:4000/api-calls-user";
 
 const Home = () => {
   const { status, user } = useContext(AuthContext);
