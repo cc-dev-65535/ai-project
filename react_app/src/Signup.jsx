@@ -8,6 +8,7 @@ const URL =
 const postSignup = async ({ username, password }) => {
   const response = await fetch(URL, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },

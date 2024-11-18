@@ -1,9 +1,6 @@
-
-
-
 import { useContext, useState } from "react";
 import { AuthContext } from "./auth";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const MODEL_URL =
   process.env.NODE_ENV === "production" ? "/api" : "http://localhost:4000/api";
@@ -17,9 +14,9 @@ const API_CALL_USER_URL =
     : "http://localhost:4000/api-calls-user";
 
 const Home = () => {
-  const { status, user } = useContext(AuthContext);
+  const authState = useContext(AuthContext);
 
-  if (!status) {
+  if (!authState?.status) {
     return <h1 className="text-center">Please log in to continue</h1>;
   }
 
@@ -29,9 +26,9 @@ const Home = () => {
         <div className="col-md-8">
           <div className="card shadow p-4">
             <h2 className="text-center mb-4">
-              {user.permissions === "USER" ? "User Home" : "Admin Home"}
+              {authState.user.permissions === "USER" ? "User Home" : "Admin Home"}
             </h2>
-            {user.permissions === "USER" ? <UserHome /> : <AdminHome />}
+            {authState.user.permissions === "USER" ? <UserHome /> : <AdminHome />}
           </div>
         </div>
       </div>
@@ -42,6 +39,7 @@ const Home = () => {
 const getModelResponse = async ({ inputText }) => {
   const response = await fetch(MODEL_URL, {
     method: "POST",
+    credentials: "include",
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
       "Content-Type": "application/json",
@@ -68,6 +66,7 @@ const getModelResponse = async ({ inputText }) => {
 const getApiCalls = async () => {
   const response = await fetch(API_CALL_URL, {
     method: "GET",
+    credentials: "include",
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
@@ -87,6 +86,7 @@ const getApiCalls = async () => {
 const getApiCallsUser = async () => {
   const response = await fetch(API_CALL_USER_URL, {
     method: "GET",
+    credentials: "include",
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
@@ -111,6 +111,7 @@ const UserHome = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechRate, setSpeechRate] = useState(1);
   const { user } = useContext(AuthContext);
+  const queryClient = useQueryClient();
 
   const { data: apiCallsData } = useQuery({
     queryKey: ["api-calls", user.username],

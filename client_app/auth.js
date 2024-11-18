@@ -26,7 +26,11 @@ const createJwtToken = ({ username, permissions }) => {
 };
 
 const validateJwtToken = (req, res, next) => {
-  const token = req.headers.authorization.split(" ")[1];
+  const token = req.cookies.token;
+  if (!token) {
+    res.status(401).send({ response: "No token. Must login first" });
+    return;
+  }
   const [header, payload, signature] = token.split(".");
   const signatureToVerify = crypto
     .createHmac("sha256", SECRET)
@@ -39,7 +43,7 @@ const validateJwtToken = (req, res, next) => {
     res.locals.payload = JSON.parse(Buffer.from(payload, "base64").toString());
     next();
   } else {
-    res.status(401).send({ response: "Invalid token" });
+    res.status(401).send({ response: "Invalid token. Must login again" });
   }
 };
 
@@ -58,7 +62,10 @@ const login = async ({ username, password }) => {
   if (rows.length === 0 || !validatePassword(password, rows[0])) {
     return null;
   }
-  return createJwtToken(rows[0]);
+  return {
+    token: createJwtToken(rows[0]),
+    payload: { username: rows[0].username, permissions: rows[0].permissions },
+  };
 };
 
 const hashPassword = (password) => {

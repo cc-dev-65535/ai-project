@@ -10,29 +10,48 @@ import { sanitizeJsonBody } from "./xss.js";
 import { login, signup, validateJwtToken } from "./auth.js";
 import cors from "cors";
 import path from "path";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
 if (process.env.NODE_ENV !== "production") {
-  app.use(cors());
+  app.use(cors({ credentials: true, origin: "http://localhost:1234" }));
 }
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 /* AUTHENTICATION API ROUTES */
 app.post("/login", sanitizeJsonBody, async (req, res, next) => {
   try {
-    const token = await login(req.body);
-    if (!token) {
+    const tokenAndPayload = await login(req.body);
+    if (!tokenAndPayload?.token) {
       res.status(401).send({ message: "Invalid username or password" });
       return;
     }
-    res.status(200).send({ message: "Logged in successfully", token });
+    const { token, payload } = tokenAndPayload;
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 1000 * 60 * 60 * 24,
+    });
+    res.status(200).send({ message: "Logged in successfully", payload });
   } catch (err) {
     next(err);
   }
+});
+
+app.post("/logout", (req, res, next) => {
+  res.clearCookie("token");
+  res.status(200).send({ message: "Logged out successfully" });
+});
+
+app.post("/login-check", validateJwtToken, (req, res, next) => {
+  res
+    .status(200)
+    .send({ message: "Already logged in", payload: res.locals.payload });
 });
 
 // TODO: need to validate the username and password used for signup? block symbols

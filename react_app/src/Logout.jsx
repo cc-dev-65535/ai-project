@@ -6,12 +6,13 @@ const Logout = ({ setAuthState }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    logout();
-    setAuthState({
-      status: false,
-      user: null,
-    });
-    navigate("/login");
+    const doLogout = async () => {
+      await logout();
+      setAuthState(null);
+      navigate("/login");
+    };
+
+    doLogout();
   }, []);
 
   return null;

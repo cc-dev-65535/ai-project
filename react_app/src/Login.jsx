@@ -1,14 +1,17 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login, getTokenPayload } from "./auth";
+import { setClaims, getClaims } from "./auth";
 
 const URL =
-  process.env.NODE_ENV === "production" ? "/login" : "http://localhost:4000/login";
+  process.env.NODE_ENV === "production"
+    ? "/login"
+    : "http://localhost:4000/login";
 
 const postLogin = async ({ username, password }) => {
   const response = await fetch(URL, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
@@ -30,10 +33,9 @@ const Login = ({ setAuthState }) => {
     onSuccess: async (data) => {
       if (data.ok) {
         const jsonData = await data.json();
-        login(jsonData.token);
         setAuthState({
           status: true,
-          user: getTokenPayload(),
+          user: jsonData.payload,
         });
         navigate("/");
       } else {

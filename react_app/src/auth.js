@@ -1,33 +1,70 @@
 import { useState, useEffect, createContext } from "react";
 
+const LOGIN_CHECK_URL =
+  process.env.NODE_ENV === "production"
+    ? "/login-check"
+    : "http://localhost:4000/login-check";
+const LOGOUT_URL =
+  process.env.NODE_ENV === "production"
+    ? "/logout"
+    : "http://localhost:4000/logout";
+
 const AuthContext = createContext(null);
 
-const getTokenPayload = () => {
-  const token = localStorage.getItem("token");
-  if (token === null) {
-    return null;
-  }
+// const getClaims = () => {
+//   if (localStorage.getItem("claims") === null) {
+//     return null;
+//   }
+//   return JSON.parse(localStorage.getItem("claims"));
+// };
+
+const loginCheck = async () => {
   try {
-    const payload = token.split(".")[1];
-    const decodedPayload = atob(payload);
-    return JSON.parse(decodedPayload);
+    const response = await fetch(LOGIN_CHECK_URL, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
+    });
+
+    if (!response.ok) {
+      throw new Error("Invalid login");
+    }
+
+    const data = await response.json();
+    return data.payload;
   } catch (error) {
+    console.error(error);
     return null;
   }
 };
 
-const isLoggedIn = () => {
-    const token = localStorage.getItem("token");
-    return token !== null;
+const logout = async () => {
+  try {
+    const response = await fetch(LOGOUT_URL, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
+    });
+
+    if (!response.ok) {
+      throw new Error("Invalid login");
+    }
+
+    const data = await response.json();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 };
 
-const logout = () => {
-  localStorage.removeItem("token");
-  // window.location.href = "/login";
-};
+// const setClaims = (payload) => {
+//   localStorage.setItem("claims", payload);
+// };
 
-const login = (token) => {
-  localStorage.setItem("token", token);
-};
-
-export { isLoggedIn, login, logout, getTokenPayload, AuthContext };
+export { AuthContext, loginCheck, logout };
