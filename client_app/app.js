@@ -42,8 +42,9 @@ app.post("/login", async (req, res, next) => {
     }
     const { token, payload } = tokenAndPayload;
     res.cookie("token", token, {
-      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24,
     });
     res.status(200).send({ message: "Logged in successfully", payload });
@@ -53,7 +54,12 @@ app.post("/login", async (req, res, next) => {
 });
 
 app.post("/logout", (req, res, next) => {
-  res.clearCookie("token");
+  res.clearCookie("token", {
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+  });
+  // res.cookie('token', {maxAge: 0});
   res.status(200).send({ message: "Logged out successfully" });
 });
 

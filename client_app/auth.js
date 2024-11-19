@@ -1,7 +1,7 @@
 import db from "./db.js";
 import crypto from "crypto";
 
-// TODO: create secure secret in environment variable
+// TODO: create secure secret
 const SECRET = "secret";
 
 const createJwtToken = ({ username, permissions }) => {
