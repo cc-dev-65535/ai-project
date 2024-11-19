@@ -14,6 +14,10 @@ const API_CALL_USER_URL =
   process.env.NODE_ENV === "production"
     ? "https://client-app-ebon.vercel.app/api-calls-user"
     : "http://localhost:4000/api-calls-user";
+const ENDPOINT_CALL_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://client-app-ebon.vercel.app/api-calls-endpoint"
+    : "http://localhost:4000/api-calls-endpoint";
 
 const Home = () => {
   const authState = useContext(AuthContext);
@@ -65,26 +69,6 @@ const getModelResponse = async ({ inputText }) => {
     return data;
   } catch (error) {
     console.error("API error:", error); // Debug log
-    throw new Error(
-      "Server returned an invalid response. Check if the server is running and accessible."
-    );
-  }
-};
-
-const getApiCalls = async () => {
-  const response = await fetch(API_CALL_URL, {
-    method: "GET",
-    credentials: "include",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
-  });
-
-  try {
-    const data = await response.json();
-    if (!response.ok) throw new Error("Error fetching API call data");
-    return data;
-  } catch (error) {
     throw new Error(
       "Server returned an invalid response. Check if the server is running and accessible."
     );
@@ -263,15 +247,65 @@ const UserHome = () => {
   );
 };
 
+const getApiCalls = async () => {
+  const response = await fetch(API_CALL_URL, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+
+  try {
+    const data = await response.json();
+    if (!response.ok) throw new Error("Error fetching API call data");
+    return data;
+  } catch (error) {
+    throw new Error(
+      "Server returned an invalid response. Check if the server is running and accessible."
+    );
+  }
+};
+
+const getEndpointCalls = async () => {
+  const response = await fetch(ENDPOINT_CALL_URL, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+
+  try {
+    const data = await response.json();
+    if (!response.ok) throw new Error("Error fetching API call data");
+    return data;
+  } catch (error) {
+    throw new Error(
+      "Server returned an invalid response. Check if the server is running and accessible."
+    );
+  }
+};
+
 const AdminHome = () => {
   const { isLoading, isError, data } = useQuery({
     queryKey: ["api-calls"],
     queryFn: getApiCalls,
   });
 
+  const {
+    isLoading: isLoadingEndpoints,
+    isError: isEndpointError,
+    data: endpointData,
+  } = useQuery({
+    queryKey: ["endpoint-calls"],
+    queryFn: getEndpointCalls,
+  });
+
   return (
     <div>
       <h3>Admin Dashboard</h3>
+      <h4>API Usage</h4>
       {isLoading && <p>Loading data...</p>}
       {isError && <p>Error loading data</p>}
       {data && (
@@ -287,6 +321,29 @@ const AdminHome = () => {
               <tr key={index}>
                 <td>{user.username}</td>
                 <td>{user.api_calls}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <h4>Endpoint Usage</h4>
+      {isLoadingEndpoints && <p>Loading data...</p>}
+      {isEndpointError && <p>Error loading data</p>}
+      {endpointData && (
+        <table className="table table-bordered mt-3">
+          <thead>
+            <tr>
+              <th>Endpoint</th>
+              <th>Method</th>
+              <th>Requests</th>
+            </tr>
+          </thead>
+          <tbody>
+            {endpointData.data.map((endpoint, index) => (
+              <tr key={index}>
+                <td>{endpoint.endpoint}</td>
+                <td>{endpoint.method}</td>
+                <td>{endpoint.requests}</td>
               </tr>
             ))}
           </tbody>
