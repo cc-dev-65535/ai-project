@@ -3,14 +3,16 @@ import { AuthContext } from "./auth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const MODEL_URL =
-  process.env.NODE_ENV === "production" ? "/api" : "http://localhost:4000/api";
+  process.env.NODE_ENV === "production"
+    ? "https://client-app-ebon.vercel.app/api"
+    : "http://localhost:4000/api";
 const API_CALL_URL =
   process.env.NODE_ENV === "production"
-    ? "/api-calls"
+    ? "https://client-app-ebon.vercel.app/api-calls"
     : "http://localhost:4000/api-calls";
 const API_CALL_USER_URL =
   process.env.NODE_ENV === "production"
-    ? "/api-calls-user"
+    ? "https://client-app-ebon.vercel.app/api-calls-user"
     : "http://localhost:4000/api-calls-user";
 
 const Home = () => {
@@ -26,9 +28,15 @@ const Home = () => {
         <div className="col-md-8">
           <div className="card shadow p-4">
             <h2 className="text-center mb-4">
-              {authState.user.permissions === "USER" ? "User Home" : "Admin Home"}
+              {authState.user.permissions === "USER"
+                ? "User Home"
+                : "Admin Home"}
             </h2>
-            {authState.user.permissions === "USER" ? <UserHome /> : <AdminHome />}
+            {authState.user.permissions === "USER" ? (
+              <UserHome />
+            ) : (
+              <AdminHome />
+            )}
           </div>
         </div>
       </div>
@@ -170,6 +178,7 @@ const UserHome = () => {
       setModelText("");
     },
     onSettled: () => {
+      queryClient.invalidateQueries(["api-calls"]);
       setLoading(false);
     },
   });
@@ -181,7 +190,9 @@ const UserHome = () => {
     >
       <div className="card mb-3">
         <div className="card-body">
-          <p>Current API calls: {apiCallsData?.data?.api_calls ?? "loading..."}</p>
+          <p>
+            Current API calls: {apiCallsData?.data?.api_calls ?? "loading..."}
+          </p>
           {(apiCallsData?.data?.api_calls ?? 0) > 20 && (
             <p className="text-danger">Warning: maxed free API calls</p>
           )}
@@ -253,72 +264,9 @@ const UserHome = () => {
 };
 
 const AdminHome = () => {
-  const [modelText, setModelText] = useState("");
-  const [inputText, setInputText] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [speechRate, setSpeechRate] = useState(1);
-
   const { isLoading, isError, data } = useQuery({
     queryKey: ["api-calls"],
     queryFn: getApiCalls,
-  });
-
-  const speak = () => {
-    console.log("Attempting to speak:", modelText); // Debug log
-    if (!modelText) {
-      console.log("No text to speak"); // Debug log
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(modelText);
-    utterance.rate = speechRate;
-
-    utterance.onstart = () => {
-      console.log("Speech started"); // Debug log
-      setIsSpeaking(true);
-    };
-    utterance.onend = () => {
-      console.log("Speech ended"); // Debug log
-      setIsSpeaking(false);
-    };
-    utterance.onerror = (event) => {
-      console.error("Speech error:", event); // Debug log
-      setIsSpeaking(false);
-      setError("Text-to-speech failed. Please try again.");
-    };
-
-    window.speechSynthesis.speak(utterance);
-  };
-
-  const stopSpeaking = () => {
-    console.log("Stopping speech"); // Debug log
-    window.speechSynthesis.cancel();
-    setIsSpeaking(false);
-  };
-
-  const onInputChange = (event) => {
-    setInputText(event.target.value);
-  };
-
-  const { mutateAsync } = useMutation({
-    mutationFn: getModelResponse,
-    onSuccess: (data) => {
-      console.log("Setting model text:", data.data); // Debug log
-      setModelText(data.data);
-      setError(null);
-    },
-    onError: (error) => {
-      console.error("Mutation error:", error); // Debug log
-      setError(error.message);
-      setModelText("");
-    },
-    onSettled: () => {
-      setLoading(false);
-    },
   });
 
   return (
@@ -344,75 +292,6 @@ const AdminHome = () => {
           </tbody>
         </table>
       )}
-
-      <div className="mt-4">
-        <div
-          className="d-flex flex-column"
-          style={{ width: "100%", maxWidth: "600px", gap: "10px" }}
-        >
-          <input
-            type="text"
-            placeholder="Enter story prompt"
-            value={inputText}
-            onChange={onInputChange}
-            className="form-control"
-          />
-          <button
-            onClick={() => {
-              console.log("Generating response for:", inputText); // Debug log
-              setLoading(true);
-              setModelText("");
-              mutateAsync({ inputText });
-            }}
-            className="btn btn-primary"
-          >
-            Get model Response
-          </button>
-        </div>
-
-        {loading && <p>Loading...</p>}
-        {error && <p style={{ color: "red" }}>Error: {error}</p>}
-
-        {modelText && (
-          <div className="mt-3">
-            <div className="card mb-3">
-              <div className="card-body">
-                <h5 className="card-title">Generated Story</h5>
-                <p className="card-text" style={{ whiteSpace: "pre-wrap" }}>
-                  {modelText}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <button
-          onClick={isSpeaking ? stopSpeaking : speak}
-          className={`btn ${isSpeaking ? "btn-danger" : "btn-success"} w-100`}
-        >
-          {isSpeaking ? "Stop Reading" : "Read Story"}
-        </button>
-
-        <div className="card">
-          <div className="card-body">
-            <h5 className="card-title">Text-to-Speech Controls</h5>
-            <div className="d-flex align-items-center gap-2 mb-3">
-              <label>Speed:</label>
-              <input
-                type="range"
-                min="0.5"
-                max="2"
-                step="0.1"
-                value={speechRate}
-                onChange={(e) => setSpeechRate(parseFloat(e.target.value))}
-                className="form-range flex-grow-1"
-                style={{ maxWidth: "200px" }}
-              />
-              <span>{speechRate}x</span>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

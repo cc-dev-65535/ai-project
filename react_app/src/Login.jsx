@@ -5,7 +5,7 @@ import { setClaims, getClaims } from "./auth";
 
 const URL =
   process.env.NODE_ENV === "production"
-    ? "/login"
+    ? "https://client-app-ebon.vercel.app/login"
     : "http://localhost:4000/login";
 
 const postLogin = async ({ username, password }) => {

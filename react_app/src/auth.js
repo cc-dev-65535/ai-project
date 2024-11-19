@@ -2,21 +2,14 @@ import { useState, useEffect, createContext } from "react";
 
 const LOGIN_CHECK_URL =
   process.env.NODE_ENV === "production"
-    ? "/login-check"
+    ? "https://client-app-ebon.vercel.app/login-check"
     : "http://localhost:4000/login-check";
 const LOGOUT_URL =
   process.env.NODE_ENV === "production"
-    ? "/logout"
+    ? "https://client-app-ebon.vercel.app/logout"
     : "http://localhost:4000/logout";
 
 const AuthContext = createContext(null);
-
-// const getClaims = () => {
-//   if (localStorage.getItem("claims") === null) {
-//     return null;
-//   }
-//   return JSON.parse(localStorage.getItem("claims"));
-// };
 
 const loginCheck = async () => {
   try {
@@ -62,9 +55,5 @@ const logout = async () => {
     return null;
   }
 };
-
-// const setClaims = (payload) => {
-//   localStorage.setItem("claims", payload);
-// };
 
 export { AuthContext, loginCheck, logout };

@@ -16,6 +16,13 @@ const app = express();
 
 if (process.env.NODE_ENV !== "production") {
   app.use(cors({ credentials: true, origin: "http://localhost:1234" }));
+} else {
+  app.use(
+    cors({
+      credentials: true,
+      origin: "https://html-starter-inky-alpha.vercel.app",
+    })
+  );
 }
 
 app.use(express.json());
@@ -54,7 +61,6 @@ app.post("/login-check", validateJwtToken, (req, res, next) => {
     .send({ message: "Already logged in", payload: res.locals.payload });
 });
 
-// TODO: need to validate the username and password used for signup? block symbols
 app.post("/signup", sanitizeJsonBody, async (req, res, next) => {
   try {
     await signup(req.body);
@@ -107,8 +113,10 @@ app.get("/api-calls-user", validateJwtToken, async (req, res, next) => {
 });
 
 /* FRONTEND ROUTES */
-app.get("*", (req, res) => {
-  res.sendFile("index.html", { root: path.join(path.resolve(), "public") });
+app.get("/api-docs", (req, res) => {
+  res.sendFile("index.html", {
+    root: path.join(path.resolve(), "public"),
+  });
 });
 
 app.listen(4000);
