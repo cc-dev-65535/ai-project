@@ -9,6 +9,7 @@ import {
   getApiCallsCount,
   getApiCallsCountUser,
   getEndpointCallsCount,
+  saveStory, deleteStory, getAllStories, editTitle,
 } from "./apiCalls.js";
 import cors from "cors";
 import path from "path";
@@ -87,6 +88,7 @@ app.post("/api", validateJwtToken, sanitizeJsonBody, async (req, res, next) => {
       // remove <sep> and [ WP ] text strings from the response
       data.data = data.data.replaceAll(/(<sep>|\[ WP \])/g, "");
       await updateApiCallsCount(res.locals.payload.username);
+      data.data = sanitizeStory(data.data);
       res.status(200).send(data);
     } else {
       throw new Error("API call failed");
@@ -96,6 +98,10 @@ app.post("/api", validateJwtToken, sanitizeJsonBody, async (req, res, next) => {
     next(err);
   }
 });
+
+const sanitizeStory = (story) => {
+  return story.replace(/<sep>/g, "").replace(/\[\s*W\s*P\s*\]/g, "");
+};
 
 /* API CALLS USAGE ROUTES */
 app.get("/api-calls", validateJwtToken, async (req, res, next) => {
@@ -131,6 +137,91 @@ app.get("/api-calls-endpoint", validateJwtToken, async (req, res, next) => {
     next(err);
   }
 });
+
+/* DATABASE ROUTES */
+
+app.post(
+  "/api/story",
+  validateJwtToken,
+  sanitizeJsonBody,
+  async (req, res, next) => {
+    try {
+      const username = res.locals.payload.username;
+      const { story, title } = req.body;
+      if (!username || !story) {
+        return res.status(400).send({ error: "Missing required fields" });
+      }
+
+      await saveStory(username, title, story);
+
+      res.status(200).send({ message: "Story saved successfully" });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  }
+);
+
+app.get(
+  "/api/story",
+  validateJwtToken,
+  async (_, res, next) => {
+    try {
+      const username = res.locals.payload.username;
+      if (!username) {
+        return res.status(400).send({ error: "Username is required" });
+      }
+
+      const stories = await getAllStories(username);
+
+      res.status(200).send(stories);
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  }
+);
+
+app.delete(
+  "/api/story",
+  validateJwtToken,
+  async (req, res, next) => {
+    try {
+      const { storyId } = req.query;
+      if (!storyId) {
+        return res.status(400).send({ error: "Story ID is required" });
+      }
+
+      await deleteStory(storyId);
+
+      res.status(200).send({ message: "Story deleted successfully" });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  }
+);
+
+app.put(
+  "/api/story",
+  validateJwtToken,
+  sanitizeJsonBody,
+  async (req, res, next) => {
+    try {
+      const { storyId, newTitle } = req.body;
+      if (!storyId || !newTitle) {
+        return res.status(400).send({ error: "Story ID and new title are required" });
+      }
+
+      await editTitle(storyId, newTitle);
+
+      res.status(200).send({ message: "Title updated successfully" });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  }
+);
 
 /* FRONTEND ROUTES */
 app.get("/docs", (req, res) => {
