@@ -2,10 +2,12 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API_VERSION = "/API/v1";
+
 const URL =
   process.env.NODE_ENV === "production"
-    ? "https://client-app-ebon.vercel.app/signup"
-    : "http://localhost:4000/signup";
+    ? `https://client-app-ebon.vercel.app${API_VERSION}/signup`
+    : `http://localhost:4000${API_VERSION}/signup`;
 
 const postSignup = async ({ username, password }) => {
   const response = await fetch(URL, {

@@ -9,7 +9,10 @@ import {
   getApiCallsCount,
   getApiCallsCountUser,
   getEndpointCallsCount,
-  saveStory, deleteStory, getAllStories, editTitle,
+  saveStory,
+  deleteStory,
+  getAllStories,
+  editTitle,
 } from "./apiCalls.js";
 import cors from "cors";
 import path from "path";
@@ -33,8 +36,10 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
+const API_VERSION = "/API/v1";
+
 /* AUTHENTICATION API ROUTES */
-app.post("/login", async (req, res, next) => {
+app.post(API_VERSION + "/login", logEndpointCall, async (req, res, next) => {
   try {
     const tokenAndPayload = await login(req.body);
     if (!tokenAndPayload?.token) {
@@ -54,7 +59,7 @@ app.post("/login", async (req, res, next) => {
   }
 });
 
-app.post("/logout", (req, res, next) => {
+app.post(API_VERSION + "/logout", logEndpointCall, (req, res, next) => {
   res.clearCookie("token", {
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     secure: process.env.NODE_ENV === "production",
@@ -64,13 +69,13 @@ app.post("/logout", (req, res, next) => {
   res.status(200).send({ message: "Logged out successfully" });
 });
 
-app.post("/login-check", validateJwtToken, (req, res, next) => {
+app.post(API_VERSION + "/login-check", validateJwtToken, (req, res, next) => {
   res
     .status(200)
     .send({ message: "Already logged in", payload: res.locals.payload });
 });
 
-app.post("/signup", checkEmail, async (req, res, next) => {
+app.post(API_VERSION + "/signup", checkEmail, async (req, res, next) => {
   try {
     await signup(req.body);
     res.status(200).send({ message: "Signed up successfully" });
@@ -80,68 +85,86 @@ app.post("/signup", checkEmail, async (req, res, next) => {
 });
 
 /* MODEL API ROUTES */
-app.post("/api", validateJwtToken, sanitizeJsonBody, async (req, res, next) => {
-  try {
-    const response = await callModel(req.body);
-    if (response.ok) {
-      const data = await response.json();
-      // remove <sep> and [ WP ] text strings from the response
-      data.data = data.data.replaceAll(/(<sep>|\[ WP \])/g, "");
-      await updateApiCallsCount(res.locals.payload.username);
-      data.data = sanitizeStory(data.data);
-      res.status(200).send(data);
-    } else {
-      throw new Error("API call failed");
+app.post(
+  API_VERSION + "/api",
+  logEndpointCall,
+  validateJwtToken,
+  sanitizeJsonBody,
+  async (req, res, next) => {
+    try {
+      const response = await callModel(req.body);
+      if (response.ok) {
+        const data = await response.json();
+        await updateApiCallsCount(res.locals.payload.username);
+        // remove <sep> and [ WP ] text strings from the response
+        data.data = sanitizeStory(data.data);
+        res.status(200).send(data);
+      } else {
+        throw new Error("API call failed");
+      }
+    } catch (err) {
+      console.log(err);
+      next(err);
     }
-  } catch (err) {
-    console.log(err);
-    next(err);
   }
-});
+);
 
 const sanitizeStory = (story) => {
   return story.replace(/<sep>/g, "").replace(/\[\s*W\s*P\s*\]/g, "");
 };
 
 /* API CALLS USAGE ROUTES */
-app.get("/api-calls", validateJwtToken, async (req, res, next) => {
-  if (res.locals.payload.permissions !== "ADMIN") {
-    res.status(403).send({ message: "Forbidden" });
-    return;
+app.get(
+  API_VERSION + "/api-calls",
+  validateJwtToken,
+  async (req, res, next) => {
+    if (res.locals.payload.permissions !== "ADMIN") {
+      res.status(403).send({ message: "Forbidden" });
+      return;
+    }
+    try {
+      const data = await getApiCallsCount();
+      res.status(200).send({ data });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
   }
-  try {
-    const data = await getApiCallsCount();
-    res.status(200).send({ data });
-  } catch (err) {
-    console.log(err);
-    next(err);
-  }
-});
+);
 
-app.get("/api-calls-user", validateJwtToken, async (req, res, next) => {
-  try {
-    const data = await getApiCallsCountUser(res.locals.payload.username);
-    res.status(200).send({ data });
-  } catch (err) {
-    console.log(err);
-    next(err);
+app.get(
+  API_VERSION + "/api-calls-user",
+  logEndpointCall,
+  validateJwtToken,
+  async (req, res, next) => {
+    try {
+      const data = await getApiCallsCountUser(res.locals.payload.username);
+      res.status(200).send({ data });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
   }
-});
+);
 
-app.get("/api-calls-endpoint", validateJwtToken, async (req, res, next) => {
-  try {
-    const data = await getEndpointCallsCount();
-    res.status(200).send({ data });
-  } catch (err) {
-    console.log(err);
-    next(err);
+app.get(
+  API_VERSION + "/api-calls-endpoint",
+  validateJwtToken,
+  async (req, res, next) => {
+    try {
+      const data = await getEndpointCallsCount();
+      res.status(200).send({ data });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
   }
-});
+);
 
 /* DATABASE ROUTES */
-
 app.post(
-  "/api/story",
+  API_VERSION + "/story",
+  logEndpointCall,
   validateJwtToken,
   sanitizeJsonBody,
   async (req, res, next) => {
@@ -162,55 +185,50 @@ app.post(
   }
 );
 
-app.get(
-  "/api/story",
-  validateJwtToken,
-  async (_, res, next) => {
-    try {
-      const username = res.locals.payload.username;
-      if (!username) {
-        return res.status(400).send({ error: "Username is required" });
-      }
-
-      const stories = await getAllStories(username);
-
-      res.status(200).send(stories);
-    } catch (err) {
-      console.log(err);
-      next(err);
+app.get(API_VERSION + "/story", logEndpointCall, validateJwtToken, async (_, res, next) => {
+  try {
+    const username = res.locals.payload.username;
+    if (!username) {
+      return res.status(400).send({ error: "Username is required" });
     }
+
+    const stories = await getAllStories(username);
+
+    res.status(200).send(stories);
+  } catch (err) {
+    console.log(err);
+    next(err);
   }
-);
+});
 
-app.delete(
-  "/api/story",
-  validateJwtToken,
-  async (req, res, next) => {
-    try {
-      const { storyId } = req.query;
-      if (!storyId) {
-        return res.status(400).send({ error: "Story ID is required" });
-      }
-
-      await deleteStory(storyId);
-
-      res.status(200).send({ message: "Story deleted successfully" });
-    } catch (err) {
-      console.log(err);
-      next(err);
+app.delete(API_VERSION + "/story", logEndpointCall, validateJwtToken, async (req, res, next) => {
+  try {
+    const { storyId } = req.query;
+    if (!storyId) {
+      return res.status(400).send({ error: "Story ID is required" });
     }
+
+    await deleteStory(storyId);
+
+    res.status(200).send({ message: "Story deleted successfully" });
+  } catch (err) {
+    console.log(err);
+    next(err);
   }
-);
+});
 
 app.put(
-  "/api/story",
+  API_VERSION + "/story",
+  logEndpointCall,
   validateJwtToken,
   sanitizeJsonBody,
   async (req, res, next) => {
     try {
       const { storyId, newTitle } = req.body;
       if (!storyId || !newTitle) {
-        return res.status(400).send({ error: "Story ID and new title are required" });
+        return res
+          .status(400)
+          .send({ error: "Story ID and new title are required" });
       }
 
       await editTitle(storyId, newTitle);
@@ -224,7 +242,7 @@ app.put(
 );
 
 /* FRONTEND ROUTES */
-app.get("/docs", (req, res) => {
+app.get(API_VERSION + "/docs", (req, res) => {
   res.sendFile("swagger.html", {
     root: path.join(path.resolve(), "public"),
   });

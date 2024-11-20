@@ -1,13 +1,15 @@
 import { useState, useEffect, createContext } from "react";
 
+const API_VERSION = "/API/v1";
+
 const LOGIN_CHECK_URL =
   process.env.NODE_ENV === "production"
-    ? "https://client-app-ebon.vercel.app/login-check"
-    : "http://localhost:4000/login-check";
+    ? `https://client-app-ebon.vercel.app${API_VERSION}/login-check`
+    : `http://localhost:4000${API_VERSION}/login-check`;
 const LOGOUT_URL =
   process.env.NODE_ENV === "production"
-    ? "https://client-app-ebon.vercel.app/logout"
-    : "http://localhost:4000/logout";
+    ? `https://client-app-ebon.vercel.app${API_VERSION}/logout`
+    : `http://localhost:4000${API_VERSION}/logout`;
 
 const AuthContext = createContext(null);
 

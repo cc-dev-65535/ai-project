@@ -2,26 +2,28 @@ import { useContext, useState } from "react";
 import { AuthContext } from "./auth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+const API_VERSION = "/API/v1";
+
 const MODEL_URL =
   process.env.NODE_ENV === "production"
-    ? "https://client-app-ebon.vercel.app/api"
-    : "http://localhost:4000/api";
+    ? `https://client-app-ebon.vercel.app${API_VERSION}/api`
+    : `http://localhost:4000${API_VERSION}/api`;
 const API_CALL_URL =
   process.env.NODE_ENV === "production"
-    ? "https://client-app-ebon.vercel.app/api-calls"
-    : "http://localhost:4000/api-calls";
+    ? `https://client-app-ebon.vercel.app${API_VERSION}/api-calls`
+    : `http://localhost:4000${API_VERSION}/api-calls`;
 const API_CALL_USER_URL =
   process.env.NODE_ENV === "production"
-    ? "https://client-app-ebon.vercel.app/api-calls-user"
-    : "http://localhost:4000/api-calls-user";
+    ? `https://client-app-ebon.vercel.app${API_VERSION}/api-calls-user`
+    : `http://localhost:4000${API_VERSION}/api-calls-user`;
 const ENDPOINT_CALL_URL =
   process.env.NODE_ENV === "production"
-    ? "https://client-app-ebon.vercel.app/api-calls-endpoint"
-    : "http://localhost:4000/api-calls-endpoint";
+    ? `https://client-app-ebon.vercel.app${API_VERSION}/api-calls-endpoint`
+    : `http://localhost:4000${API_VERSION}/api-calls-endpoint`;
 const STORY_URL =
   process.env.NODE_ENV === "production"
-    ? "https://client-app-ebon.vercel.app/api/story"
-    : "http://localhost:4000/api/story";
+    ? `https://client-app-ebon.vercel.app${API_VERSION}/story`
+    : `http://localhost:4000${API_VERSION}/story`;
 
 const Home = () => {
   const authState = useContext(AuthContext);
@@ -57,7 +59,6 @@ const getModelResponse = async ({ inputText }) => {
     method: "POST",
     credentials: "include",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -83,9 +84,6 @@ const getApiCallsUser = async () => {
   const response = await fetch(API_CALL_USER_URL, {
     method: "GET",
     credentials: "include",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
   });
 
   try {
@@ -104,7 +102,6 @@ const storyAPICall = async (url, method, data = null, headers = {}) => {
     method: method,
     credentials: "include",
     headers: { 
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
       "Content-Type": "application/json",
       ...headers },
   };
@@ -171,7 +168,7 @@ const UserHome = () => {
     utterance.onerror = (event) => {
       console.error("Speech error:", event); // Debug log
       setIsSpeaking(false);
-      setError("Text-to-speech failed. Please try again.");
+      setError("Text-to-speech stopped. Please try again.");
     };
 
     window.speechSynthesis.speak(utterance);
@@ -299,13 +296,27 @@ const UserHome = () => {
   );
 };
 
+const getApiCalls = async () => {
+  const response = await fetch(API_CALL_URL, {
+    method: "GET",
+    credentials: "include",
+  });
+
+  try {
+    const data = await response.json();
+    if (!response.ok) throw new Error("Error fetching API call data");
+    return data;
+  } catch (error) {
+    throw new Error(
+      "Server returned an invalid response. Check if the server is running and accessible."
+    );
+  }
+};
+
 const getEndpointCalls = async () => {
   const response = await fetch(ENDPOINT_CALL_URL, {
     method: "GET",
     credentials: "include",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
   });
 
   try {

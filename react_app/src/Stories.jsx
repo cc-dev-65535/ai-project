@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { AuthContext } from './auth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+const API_VERSION = "/API/v1";
 
 const STORY_URL =
   process.env.NODE_ENV === "production"
-    ? "https://client-app-ebon.vercel.app/api/story"
-    : "http://localhost:4000/api/story";
+    ? `https://client-app-ebon.vercel.app${API_VERSION}/story`
+    : `http://localhost:4000${API_VERSION}/story`;
 
 const storyAPICall = async (url, method, data = null, headers = {}) => {
     const option = {
         method: method,
         credentials: "include",
         headers: { 
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
         "Content-Type": "application/json",
         ...headers },
     };
@@ -41,6 +43,7 @@ const storyAPI = {
 const StoryCards = () => {
   const [isEditing, setIsEditing] = useState(null);
   const queryClient = useQueryClient();
+  const authState = useContext(AuthContext);
 
   // Fetch stories
   const { data: stories = [], isLoading, isError } = useQuery({
@@ -90,6 +93,10 @@ const StoryCards = () => {
       }
     }
   };
+
+  if (!authState?.status) {
+    return <h1 className="text-center">Please log in to continue</h1>;
+  }
 
   if (isLoading) return <div className="text-center">Loading stories...</div>;
   if (isError) return <div className="text-center text-danger">Error loading stories</div>;

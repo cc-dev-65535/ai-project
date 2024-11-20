@@ -39,7 +39,7 @@ export function App() {
               element={<MainLayout />}
             >
               <Route path="/" element={<Home />} />
-              <Route path="/stories" element={<Stories />} />
+              <Route path="stories" element={<Stories />} />
               <Route path="signup" element={<Signup />} />
               <Route
                 path="login"
