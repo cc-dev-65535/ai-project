@@ -1,14 +1,16 @@
 import express from "express";
 import "dotenv/config";
+import { callModel } from "./api.js";
+import { sanitizeJsonBody, checkEmail } from "./inputValidation.js";
+import { login, signup, validateJwtToken } from "./auth.js";
 import {
-  callApi,
+  logEndpointCall,
   updateApiCallsCount,
   getApiCallsCount,
   getApiCallsCountUser,
+  getEndpointCallsCount,
   saveStory, deleteStory, getAllStories, editTitle,
-} from "./api.js";
-import { sanitizeJsonBody } from "./xss.js";
-import { login, signup, validateJwtToken } from "./auth.js";
+} from "./apiCalls.js";
 import cors from "cors";
 import path from "path";
 import cookieParser from "cookie-parser";
@@ -32,7 +34,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 /* AUTHENTICATION API ROUTES */
-app.post("/login", sanitizeJsonBody, async (req, res, next) => {
+app.post("/login", async (req, res, next) => {
   try {
     const tokenAndPayload = await login(req.body);
     if (!tokenAndPayload?.token) {
@@ -41,8 +43,9 @@ app.post("/login", sanitizeJsonBody, async (req, res, next) => {
     }
     const { token, payload } = tokenAndPayload;
     res.cookie("token", token, {
-      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24,
     });
     res.status(200).send({ message: "Logged in successfully", payload });
@@ -52,7 +55,12 @@ app.post("/login", sanitizeJsonBody, async (req, res, next) => {
 });
 
 app.post("/logout", (req, res, next) => {
-  res.clearCookie("token");
+  res.clearCookie("token", {
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+  });
+  // res.cookie('token', {maxAge: 0});
   res.status(200).send({ message: "Logged out successfully" });
 });
 
@@ -62,7 +70,7 @@ app.post("/login-check", validateJwtToken, (req, res, next) => {
     .send({ message: "Already logged in", payload: res.locals.payload });
 });
 
-app.post("/signup", sanitizeJsonBody, async (req, res, next) => {
+app.post("/signup", checkEmail, async (req, res, next) => {
   try {
     await signup(req.body);
     res.status(200).send({ message: "Signed up successfully" });
@@ -74,7 +82,7 @@ app.post("/signup", sanitizeJsonBody, async (req, res, next) => {
 /* MODEL API ROUTES */
 app.post("/api", validateJwtToken, sanitizeJsonBody, async (req, res, next) => {
   try {
-    const response = await callApi(req.body);
+    const response = await callModel(req.body);
     if (response.ok) {
       const data = await response.json();
       await updateApiCallsCount(res.locals.payload.username);
@@ -111,6 +119,16 @@ app.get("/api-calls", validateJwtToken, async (req, res, next) => {
 app.get("/api-calls-user", validateJwtToken, async (req, res, next) => {
   try {
     const data = await getApiCallsCountUser(res.locals.payload.username);
+    res.status(200).send({ data });
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+});
+
+app.get("/api-calls-endpoint", validateJwtToken, async (req, res, next) => {
+  try {
+    const data = await getEndpointCallsCount();
     res.status(200).send({ data });
   } catch (err) {
     console.log(err);
