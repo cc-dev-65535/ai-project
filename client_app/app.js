@@ -84,6 +84,8 @@ app.post("/api", validateJwtToken, sanitizeJsonBody, async (req, res, next) => {
     const response = await callModel(req.body);
     if (response.ok) {
       const data = await response.json();
+      // remove <sep> and [ WP ] text strings from the response
+      data.data = data.data.replaceAll(/(<sep>|\[ WP \])/g, "");
       await updateApiCallsCount(res.locals.payload.username);
       res.status(200).send(data);
     } else {
@@ -131,8 +133,8 @@ app.get("/api-calls-endpoint", validateJwtToken, async (req, res, next) => {
 });
 
 /* FRONTEND ROUTES */
-app.get("/api-docs", (req, res) => {
-  res.sendFile("index.html", {
+app.get("/docs", (req, res) => {
+  res.sendFile("swagger.html", {
     root: path.join(path.resolve(), "public"),
   });
 });

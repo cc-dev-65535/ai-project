@@ -60,15 +60,17 @@ const getApiCallsCount = async () => {
 
 // TODO: use this middleware to log specific endpoint calls
 const logEndpointCall = async (req, res, next) => {
-  console.log(req.method, req.url);
-
-  // update the api_calls count
-  const [response] = await db.execute(
-    "UPDATE endpoint_usage SET requests = requests + 1 WHERE endpoint = ?",
-    [req.url]
-  );
-  if (response.affectedRows === 0) {
-    console.log("db error, failed to update requests column for endpoint");
+  try {
+    // update the api_calls count
+    const [response] = await db.execute(
+      "UPDATE endpoint_usage SET requests = requests + 1 WHERE endpoint = ?",
+      [req.url]
+    );
+    if (response.affectedRows === 0) {
+      console.log("db error, failed to update requests column for endpoint");
+    }
+  } catch (err) {
+    console.log(err);
   }
 
   next();
