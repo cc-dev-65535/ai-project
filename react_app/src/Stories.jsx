@@ -99,12 +99,11 @@ const StoryCards = () => {
       <div className="row justify-content-center">
         <div className="col-md-8">
           <div className="card shadow p-4">
-            <h3 className="text-center mb-4">Your Stories</h3>
+            <h2 className="text-center mb-4">Your Stories</h2>
             <div className="d-flex flex-column" style={{ gap: "10px" }}>
               {stories.length === 0 ? (
                 <p className="text-center text-muted">No stories saved yet</p>
               ) : (
-                console.log("stories"+stories),
                 stories.map(story => (
                   <div key={story.id} className="card mb-3">
                     <div className="card-body">
