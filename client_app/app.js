@@ -98,7 +98,7 @@ app.post("/api", validateJwtToken, sanitizeJsonBody, async (req, res, next) => {
 });
 
 const sanitizeStory = (story) => {
-  return story.replace(/<sep>/g, "").replace(/\[\s*W\s*P\s*\]/g, "").trim();
+  return story.replace(/<sep>/g, "").replace(/\[\s*W\s*P\s*\]/g, "");
 };
 
 /* API CALLS USAGE ROUTES */
