@@ -10,7 +10,12 @@ const callApi = async ({ input }) => {
     },
     body: JSON.stringify({ input }),
   });
-  return response;
+  sanitizedStory = sanitizeStory(response);
+  return sanitizedStory;
+};
+
+const sanitizeStory = (story) => {
+  return story.replace(/<sep>/g, " ").trim();
 };
 
 const updateApiCallsCount = async (username) => {
@@ -180,4 +185,4 @@ const editTitle = async (storyId, newTitle) => {
 
 
 
-export { callApi, updateApiCallsCount, getApiCallsCountUser, getApiCallsCount, saveStory };
+export { callApi, updateApiCallsCount, getApiCallsCountUser, getApiCallsCount, saveStory, deleteStory, getAllStories, editTitle };

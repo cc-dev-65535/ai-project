@@ -5,6 +5,7 @@ import {
   updateApiCallsCount,
   getApiCallsCount,
   getApiCallsCountUser,
+  saveStory, deleteStory, getAllStoriesForUsername, editTitle,
 } from "./api.js";
 import { sanitizeJsonBody } from "./xss.js";
 import { login, signup, validateJwtToken } from "./auth.js";
@@ -111,6 +112,92 @@ app.get("/api-calls-user", validateJwtToken, async (req, res, next) => {
     next(err);
   }
 });
+
+/* DATABASE ROUTES */
+
+app.post(
+  "/api/story",
+  validateJwtToken,
+  sanitizeJsonBody,
+  async (req, res, next) => {
+    try {
+      const username = res.locals.payload.username;
+      const { story } = req.body;
+      if (!username || !story) {
+        return res.status(400).send({ error: "Missing required fields" });
+      }
+
+      await saveStory(username, story);
+
+      res.status(200).send({ message: "Story saved successfully" });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  }
+);
+
+app.get(
+  "/api/story",
+  validateJwtToken,
+  sanitizeJsonBody,
+  async (req, res, next) => {
+    try {
+      const username = res.locals.payload.username;
+      if (!username) {
+        return res.status(400).send({ error: "Username is required" });
+      }
+
+      const stories = await getAllStoriesForUsername(username);
+
+      res.status(200).send(stories);
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  }
+);
+
+app.delete(
+  "/api/story",
+  validateJwtToken,
+  async (req, res, next) => {
+    try {
+      const { storyId } = req.query;
+      if (!storyId) {
+        return res.status(400).send({ error: "Story ID is required" });
+      }
+
+      await deleteStory(storyId);
+
+      res.status(200).send({ message: "Story deleted successfully" });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  }
+);
+
+app.patch(
+  "/api/story",
+  validateJwtToken,
+  sanitizeJsonBody,
+  async (req, res, next) => {
+    try {
+      const { storyId, newTitle } = req.body;
+      if (!storyId || !newTitle) {
+        return res.status(400).send({ error: "Story ID and new title are required" });
+      }
+
+      await editTitle(storyId, newTitle);
+
+      res.status(200).send({ message: "Title updated successfully" });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  }
+);
 
 /* FRONTEND ROUTES */
 app.get("/api-docs", (req, res) => {
