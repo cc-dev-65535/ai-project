@@ -14,6 +14,10 @@ const API_CALL_USER_URL =
   process.env.NODE_ENV === "production"
     ? "https://client-app-ebon.vercel.app/api-calls-user"
     : "http://localhost:4000/api-calls-user";
+const STORY_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://client-app-ebon.vercel.app/api/story"
+    : "http://localhost:4000/api/story";
 
 const Home = () => {
   const authState = useContext(AuthContext);
@@ -111,6 +115,38 @@ const getApiCallsUser = async () => {
   }
 };
 
+const storyAPICall = async (url, method, data = null, headers = {}) => {
+  const option = {
+    method: method,
+    credentials: "include",
+    headers: { 
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+      ...headers },
+  };
+  if (data) option.body = JSON.stringify(data);
+
+  try {
+    console.log("Story API request:", url, option);
+    const response = await fetch(url, option);
+    const data = await response.json();
+    console.log("Story API response:", data); 
+    if (!response.ok)
+      throw new Error(data.error || "Error fetching database response");
+    return data;
+  } catch (error) {
+    console.error("API error:", error);
+    throw new Error(
+      "Server returned an invalid response. Check if the server is running and accessible."
+    );
+  }
+};
+
+const storyAPI = {
+  post: (url, data) => storyAPICall(url, "POST", data)
+}
+
+
 const UserHome = () => {
   const [modelText, setModelText] = useState("");
   const [inputText, setInputText] = useState("");
@@ -118,6 +154,8 @@ const UserHome = () => {
   const [error, setError] = useState(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechRate, setSpeechRate] = useState(1);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const { user } = useContext(AuthContext);
   const queryClient = useQueryClient();
 
@@ -211,6 +249,7 @@ const UserHome = () => {
           console.log("Generating response for:", inputText); // Debug log
           setLoading(true);
           setModelText("");
+          setSaved(false);
           mutateAsync({ inputText });
         }}
         className="btn btn-primary"
@@ -235,6 +274,18 @@ const UserHome = () => {
               <p className="card-text" style={{ whiteSpace: "pre-wrap" }}>
                 {modelText}
               </p>
+              <button
+                onClick={async () => {
+                  setSaving(true);
+                  await storyAPI.post(STORY_URL, { story: modelText, title: inputText.slice(0, 36) });
+                  setSaving(false);
+                  setSaved(true);
+                }}
+                className="btn btn-primary"
+                disabled={saving || saved}
+              > 
+              {saving ? "Saving..." : (saved ? "Story Saved": "Save Story")}
+              </button>
             </div>
           </div>
         </div>

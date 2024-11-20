@@ -5,7 +5,7 @@ import {
   updateApiCallsCount,
   getApiCallsCount,
   getApiCallsCountUser,
-  saveStory, deleteStory, getAllStoriesForUsername, editTitle,
+  saveStory, deleteStory, getAllStories, editTitle,
 } from "./api.js";
 import { sanitizeJsonBody } from "./xss.js";
 import { login, signup, validateJwtToken } from "./auth.js";
@@ -78,6 +78,7 @@ app.post("/api", validateJwtToken, sanitizeJsonBody, async (req, res, next) => {
     if (response.ok) {
       const data = await response.json();
       await updateApiCallsCount(res.locals.payload.username);
+      data.data = sanitizeStory(data.data);
       res.status(200).send(data);
     } else {
       throw new Error("API call failed");
@@ -87,6 +88,10 @@ app.post("/api", validateJwtToken, sanitizeJsonBody, async (req, res, next) => {
     next(err);
   }
 });
+
+const sanitizeStory = (story) => {
+  return story.replace(/<sep>/g, "").replace(/\[\s*W\s*P\s*\]/g, "").trim();
+};
 
 /* API CALLS USAGE ROUTES */
 app.get("/api-calls", validateJwtToken, async (req, res, next) => {
@@ -122,12 +127,12 @@ app.post(
   async (req, res, next) => {
     try {
       const username = res.locals.payload.username;
-      const { story } = req.body;
+      const { story, title } = req.body;
       if (!username || !story) {
         return res.status(400).send({ error: "Missing required fields" });
       }
 
-      await saveStory(username, story);
+      await saveStory(username, title, story);
 
       res.status(200).send({ message: "Story saved successfully" });
     } catch (err) {
@@ -140,15 +145,14 @@ app.post(
 app.get(
   "/api/story",
   validateJwtToken,
-  sanitizeJsonBody,
-  async (req, res, next) => {
+  async (_, res, next) => {
     try {
       const username = res.locals.payload.username;
       if (!username) {
         return res.status(400).send({ error: "Username is required" });
       }
 
-      const stories = await getAllStoriesForUsername(username);
+      const stories = await getAllStories(username);
 
       res.status(200).send(stories);
     } catch (err) {
@@ -178,7 +182,7 @@ app.delete(
   }
 );
 
-app.patch(
+app.put(
   "/api/story",
   validateJwtToken,
   sanitizeJsonBody,

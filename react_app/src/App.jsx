@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "./MainLayout";
 import Home from "./Home";
+import Stories from "./Stories";
 import Signup from "./Signup";
 import Login from "./Login";
 import Logout from "./Logout";
@@ -38,6 +39,7 @@ export function App() {
               element={<MainLayout />}
             >
               <Route path="/" element={<Home />} />
+              <Route path="/stories" element={<Stories />} />
               <Route path="signup" element={<Signup />} />
               <Route
                 path="login"

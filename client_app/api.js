@@ -10,12 +10,7 @@ const callApi = async ({ input }) => {
     },
     body: JSON.stringify({ input }),
   });
-  sanitizedStory = sanitizeStory(response);
-  return sanitizedStory;
-};
-
-const sanitizeStory = (story) => {
-  return story.replace(/<sep>/g, " ").trim();
+  return response;
 };
 
 const updateApiCallsCount = async (username) => {
@@ -76,7 +71,7 @@ const getApiCallsCount = async () => {
   return rows;
 };
 
-const saveStory = async (username, story) => {
+const saveStory = async (username, title, story) => {
   let conn = null;
   try {
     conn = await db.getConnection();
@@ -84,8 +79,8 @@ const saveStory = async (username, story) => {
 
     // save the story
     const [response] = await db.execute(
-      "INSERT INTO stories (username, content) VALUES (?, ?)",
-      [username, story]
+      "INSERT INTO stories (username, title, content) VALUES (?, ?, ?)",
+      [username, title, story]
     );
     if (response.affectedRows === 0) {
       throw new Error("db error, failed to save story");
@@ -94,7 +89,7 @@ const saveStory = async (username, story) => {
     await conn.commit();
   } catch (err) {
     if (conn) {
-      await conn.rollback();
+      await conn.rollback(); 
     }
     throw err;
   } finally {
@@ -155,6 +150,9 @@ const getAllStories = async (username) => {
 
 const editTitle = async (storyId, newTitle) => {
   let conn = null;
+  console.log(storyId);
+  console.log(newTitle);
+
   try {
     conn = await db.getConnection();
     await conn.beginTransaction();
@@ -165,7 +163,7 @@ const editTitle = async (storyId, newTitle) => {
       [newTitle, storyId]
     );
     if (response.affectedRows === 0) {
-      throw new Error("db error, story not found or failed to update title");
+      throw new Error(`db error, story not found or failed to update title on story id: ${storyId} with new title: ${newTitle}`);
     }
 
     await conn.commit();
