@@ -1,13 +1,14 @@
 import db from "./db.js";
 
-const updateApiCallsCount = async (username) => {
+const updateApiCallsCount = async (req, res, next) => {
+  const username = res.locals.payload.username;
   let conn = null;
   try {
     conn = await db.getConnection();
     await conn.beginTransaction();
 
     // get the current api_calls count
-    const [rows] = await db.execute(
+    const [rows] = await conn.execute(
       "SELECT * FROM api_usage WHERE username = ?",
       [username]
     );
@@ -16,7 +17,7 @@ const updateApiCallsCount = async (username) => {
     }
     const apiCalls = rows[0].api_calls + 1;
     // update the api_calls count
-    const [response] = await db.execute(
+    const [response] = await conn.execute(
       "UPDATE api_usage SET api_calls = ? WHERE username = ?",
       [apiCalls, username]
     );
@@ -29,12 +30,14 @@ const updateApiCallsCount = async (username) => {
     if (conn) {
       await conn.rollback();
     }
-    throw err;
+    console.log(err);
   } finally {
     if (conn) {
       conn.release();
     }
   }
+
+  next();
 };
 
 const getApiCallsCountUser = async (username) => {
@@ -92,7 +95,7 @@ const saveStory = async (username, title, story) => {
     await conn.beginTransaction();
 
     // save the story
-    const [response] = await db.execute(
+    const [response] = await conn.execute(
       "INSERT INTO stories (username, title, content) VALUES (?, ?, ?)",
       [username, title, story]
     );

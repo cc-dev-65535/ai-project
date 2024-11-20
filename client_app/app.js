@@ -110,6 +110,7 @@ app.post(
   API_VERSION + "/api",
   logEndpointCall,
   validateJwtToken,
+  updateApiCallsCount,
   sanitizeJsonBody,
   async (req, res, next) => {
     try {
@@ -120,7 +121,6 @@ app.post(
       const response = await callModel(req.body);
       if (response.ok) {
         const data = await response.json();
-        await updateApiCallsCount(res.locals.payload.username);
         // remove <sep> and [ WP ] text strings from the response
         data.data = sanitizeStory(data.data);
         res.status(200).send(data);
@@ -145,6 +145,7 @@ const sanitizeStory = (story) => {
 app.get(
   API_VERSION + "/api-calls",
   validateJwtToken,
+  updateApiCallsCount,
   async (req, res, next) => {
     if (res.locals.payload.permissions !== "ADMIN") {
       res.status(403).send({ message: "Forbidden" });
@@ -166,6 +167,7 @@ app.get(
   API_VERSION + "/api-calls-user",
   logEndpointCall,
   validateJwtToken,
+  updateApiCallsCount,
   async (req, res, next) => {
     try {
       const data = await getApiCallsCountUser(res.locals.payload.username);
@@ -182,6 +184,7 @@ app.get(
 app.get(
   API_VERSION + "/api-calls-endpoint",
   validateJwtToken,
+  updateApiCallsCount,
   async (req, res, next) => {
     try {
       const data = await getEndpointCallsCount();
@@ -201,6 +204,7 @@ app.post(
   API_VERSION + "/story",
   logEndpointCall,
   validateJwtToken,
+  updateApiCallsCount,
   sanitizeJsonBody,
   async (req, res, next) => {
     try {
@@ -227,6 +231,7 @@ app.get(
   API_VERSION + "/story",
   logEndpointCall,
   validateJwtToken,
+  updateApiCallsCount,
   async (_, res, next) => {
     try {
       const username = res.locals.payload.username;
@@ -251,6 +256,7 @@ app.delete(
   API_VERSION + "/story",
   logEndpointCall,
   validateJwtToken,
+  updateApiCallsCount,
   async (req, res, next) => {
     try {
       const { storyId } = req.query;
@@ -275,6 +281,7 @@ app.put(
   API_VERSION + "/story",
   logEndpointCall,
   validateJwtToken,
+  updateApiCallsCount,
   sanitizeJsonBody,
   async (req, res, next) => {
     try {

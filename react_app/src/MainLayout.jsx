@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { AuthContext } from "./auth";
 import { Link, Outlet } from "react-router-dom";
 
-const MainLayout = ({ setAuthState }) => {
+const MainLayout = () => {
   const authState = useContext(AuthContext);
 
   return (

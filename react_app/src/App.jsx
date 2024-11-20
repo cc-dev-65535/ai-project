@@ -5,7 +5,7 @@ import Stories from "./Stories";
 import Signup from "./Signup";
 import Login from "./Login";
 import Logout from "./Logout";
-import { AuthContext, getTokenPayload, isLoggedIn, loginCheck } from "./auth";
+import { AuthContext, loginCheck } from "./auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 

@@ -84,15 +84,21 @@ const signup = async ({ username, password }) => {
     await conn.beginTransaction();
 
     // create entry in users table for signed up user
-    const userResult = await db.execute(
+    const userResult = await conn.execute(
       "INSERT INTO users (username, hash, salt) VALUES (?, ?, ?)",
       [username, hash, salt]
     );
+    if (userResult.affectedRows === 0) {
+      throw new Error("db error, failed to save user record");
+    }
     // create entry in api_usage table for signed up user
-    const apiResult = await db.execute(
+    const apiResult = await conn.execute(
       "INSERT INTO api_usage (username) VALUES (?)",
       [username]
     );
+    if (apiResult.affectedRows === 0) {
+      throw new Error("db error, failed to save api usage record");
+    }
 
     await conn.commit();
   } catch (err) {
