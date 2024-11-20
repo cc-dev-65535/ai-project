@@ -237,8 +237,9 @@ const UserHome = () => {
           mutateAsync({ inputText });
         }}
         className="btn btn-primary"
+        disabled={loading || !inputText}
       >
-        Get model Response
+        Get Model Response
       </button>
       <button
         onClick={isSpeaking ? stopSpeaking : speak}
