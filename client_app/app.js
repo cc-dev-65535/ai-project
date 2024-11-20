@@ -39,8 +39,15 @@ app.use(express.static("public"));
 const API_VERSION = "/API/v1";
 
 /* AUTHENTICATION API ROUTES */
+// Returns 400 on missing username or password
+// Returns 401 on login error
+// Returns 200 on success
 app.post(API_VERSION + "/login", logEndpointCall, async (req, res, next) => {
   try {
+    if (!req.body.username || !req.body.password) {
+      res.status(400).send({ message: "Invalid username or password" });
+      return;
+    }
     const tokenAndPayload = await login(req.body);
     if (!tokenAndPayload?.token) {
       res.status(401).send({ message: "Invalid username or password" });
@@ -59,6 +66,7 @@ app.post(API_VERSION + "/login", logEndpointCall, async (req, res, next) => {
   }
 });
 
+// Returns 200 on success
 app.post(API_VERSION + "/logout", logEndpointCall, (req, res, next) => {
   res.clearCookie("token", {
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
@@ -69,22 +77,35 @@ app.post(API_VERSION + "/logout", logEndpointCall, (req, res, next) => {
   res.status(200).send({ message: "Logged out successfully" });
 });
 
+// Returns 401 on not logged in error
+// Returns 200 on success
 app.post(API_VERSION + "/login-check", validateJwtToken, (req, res, next) => {
   res
     .status(200)
     .send({ message: "Already logged in", payload: res.locals.payload });
 });
 
+// Returns 400 on invalid email username, or invalid password, or username already taken
+// Returns 200 on success
 app.post(API_VERSION + "/signup", checkEmail, async (req, res, next) => {
   try {
+    if (!req.body.username || !req.body.password) {
+      res.status(400).send({ message: "Invalid username or password" });
+      return;
+    }
     await signup(req.body);
     res.status(200).send({ message: "Signed up successfully" });
   } catch (err) {
-    next(err);
+    res.status(400).send({ message: "Bad request, username already taken" });
+    return;
   }
 });
 
 /* MODEL API ROUTES */
+// Returns 400 on missing input
+// Returns 401 on not logged in error
+// Returns 500 on model error
+// returns 200 on success
 app.post(
   API_VERSION + "/api",
   logEndpointCall,
@@ -92,6 +113,10 @@ app.post(
   sanitizeJsonBody,
   async (req, res, next) => {
     try {
+      if (!req.body.input) {
+        res.status(400).send({ message: "Invalid input" });
+        return;
+      }
       const response = await callModel(req.body);
       if (response.ok) {
         const data = await response.json();
@@ -114,6 +139,9 @@ const sanitizeStory = (story) => {
 };
 
 /* API CALLS USAGE ROUTES */
+// Returns 401 on not logged in error
+// Returns 403 on not admin error
+// Returns 200 on success
 app.get(
   API_VERSION + "/api-calls",
   validateJwtToken,
@@ -132,6 +160,8 @@ app.get(
   }
 );
 
+// Returns 401 on not logged in error
+// Returns 200 on success
 app.get(
   API_VERSION + "/api-calls-user",
   logEndpointCall,
@@ -147,6 +177,8 @@ app.get(
   }
 );
 
+// Returns 401 on not logged in error
+// Returns 200 on success
 app.get(
   API_VERSION + "/api-calls-endpoint",
   validateJwtToken,
@@ -162,6 +194,9 @@ app.get(
 );
 
 /* DATABASE ROUTES */
+// Returns 401 on not logged in error
+// Returns 400 on missing required fields
+// Returns 200 on success
 app.post(
   API_VERSION + "/story",
   logEndpointCall,
@@ -185,38 +220,57 @@ app.post(
   }
 );
 
-app.get(API_VERSION + "/story", logEndpointCall, validateJwtToken, async (_, res, next) => {
-  try {
-    const username = res.locals.payload.username;
-    if (!username) {
-      return res.status(400).send({ error: "Username is required" });
+// Returns 401 on not logged in error
+// Returns 400 on missing required fields
+// Returns 200 on success
+app.get(
+  API_VERSION + "/story",
+  logEndpointCall,
+  validateJwtToken,
+  async (_, res, next) => {
+    try {
+      const username = res.locals.payload.username;
+      if (!username) {
+        return res.status(400).send({ error: "Username is required" });
+      }
+
+      const stories = await getAllStories(username);
+
+      res.status(200).send(stories);
+    } catch (err) {
+      console.log(err);
+      next(err);
     }
-
-    const stories = await getAllStories(username);
-
-    res.status(200).send(stories);
-  } catch (err) {
-    console.log(err);
-    next(err);
   }
-});
+);
 
-app.delete(API_VERSION + "/story", logEndpointCall, validateJwtToken, async (req, res, next) => {
-  try {
-    const { storyId } = req.query;
-    if (!storyId) {
-      return res.status(400).send({ error: "Story ID is required" });
+// Returns 401 on not logged in error
+// Returns 400 on missing required fields
+// Returns 200 on success
+app.delete(
+  API_VERSION + "/story",
+  logEndpointCall,
+  validateJwtToken,
+  async (req, res, next) => {
+    try {
+      const { storyId } = req.query;
+      if (!storyId) {
+        return res.status(400).send({ error: "Story ID is required" });
+      }
+
+      await deleteStory(storyId);
+
+      res.status(200).send({ message: "Story deleted successfully" });
+    } catch (err) {
+      console.log(err);
+      next(err);
     }
-
-    await deleteStory(storyId);
-
-    res.status(200).send({ message: "Story deleted successfully" });
-  } catch (err) {
-    console.log(err);
-    next(err);
   }
-});
+);
 
+// Returns 401 on not logged in error
+// Returns 400 on missing required fields
+// Return 201 on success
 app.put(
   API_VERSION + "/story",
   logEndpointCall,
@@ -233,7 +287,7 @@ app.put(
 
       await editTitle(storyId, newTitle);
 
-      res.status(200).send({ message: "Title updated successfully" });
+      res.status(201).send({ message: "Title updated successfully" });
     } catch (err) {
       console.log(err);
       next(err);

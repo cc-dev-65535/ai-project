@@ -34,10 +34,7 @@ export function App() {
       <AuthContext.Provider value={authState}>
         <BrowserRouter>
           <Routes>
-            <Route
-              path="/"
-              element={<MainLayout />}
-            >
+            <Route path="/" element={<MainLayout />}>
               <Route path="/" element={<Home />} />
               <Route path="stories" element={<Stories />} />
               <Route path="signup" element={<Signup />} />
@@ -49,6 +46,7 @@ export function App() {
                 path="logout"
                 element={<Logout setAuthState={setAuthState} />}
               />
+              <Route path="*" element={<h1>404 - Not Found</h1>} />
             </Route>
           </Routes>
         </BrowserRouter>

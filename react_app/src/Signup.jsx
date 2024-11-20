@@ -33,9 +33,9 @@ const Signup = () => {
     mutationFn: postSignup,
     onSuccess: (data) => {
       if (data.ok) {
-        navigate("/login");
+        alert("Signed up successfully!");
       } else {
-        alert("An error occurred");
+        alert("An error occurred, check username entered");
       }
     },
   });

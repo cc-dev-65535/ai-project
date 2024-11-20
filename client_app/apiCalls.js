@@ -58,7 +58,6 @@ const getApiCallsCount = async () => {
   return rows;
 };
 
-// TODO: use this middleware to log specific endpoint calls
 const logEndpointCall = async (req, res, next) => {
   const pathURL = req.url.split("?")[0];
   try {
@@ -104,7 +103,7 @@ const saveStory = async (username, title, story) => {
     await conn.commit();
   } catch (err) {
     if (conn) {
-      await conn.rollback(); 
+      await conn.rollback();
     }
     throw err;
   } finally {
@@ -121,10 +120,9 @@ const deleteStory = async (storyId) => {
     await conn.beginTransaction();
 
     // delete the story
-    const [response] = await conn.execute(
-      "DELETE FROM stories WHERE id = ?",
-      [storyId]
-    );
+    const [response] = await conn.execute("DELETE FROM stories WHERE id = ?", [
+      storyId,
+    ]);
     if (response.affectedRows === 0) {
       throw new Error("db error, story not found or failed to delete");
     }
@@ -142,7 +140,6 @@ const deleteStory = async (storyId) => {
   }
 };
 
-
 const getAllStories = async (username) => {
   let conn = null;
   try {
@@ -153,7 +150,7 @@ const getAllStories = async (username) => {
       [username]
     );
 
-    return rows; 
+    return rows;
   } catch (err) {
     throw err;
   } finally {
@@ -178,7 +175,9 @@ const editTitle = async (storyId, newTitle) => {
       [newTitle, storyId]
     );
     if (response.affectedRows === 0) {
-      throw new Error(`db error, story not found or failed to update title on story id: ${storyId} with new title: ${newTitle}`);
+      throw new Error(
+        `db error, story not found or failed to update title on story id: ${storyId} with new title: ${newTitle}`
+      );
     }
 
     await conn.commit();
@@ -194,7 +193,6 @@ const editTitle = async (storyId, newTitle) => {
   }
 };
 
-
 export {
   getEndpointCallsCount,
   logEndpointCall,
@@ -204,5 +202,5 @@ export {
   saveStory,
   deleteStory,
   getAllStories,
-  editTitle
+  editTitle,
 };

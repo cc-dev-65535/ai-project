@@ -28,7 +28,7 @@ const createJwtToken = ({ username, permissions }) => {
 const validateJwtToken = (req, res, next) => {
   const token = req.cookies.token;
   if (!token) {
-    res.status(401).send({ response: "No token. Must login first" });
+    res.status(401).send({ message: "No token. Must login first" });
     return;
   }
   const [header, payload, signature] = token.split(".");
@@ -43,7 +43,7 @@ const validateJwtToken = (req, res, next) => {
     res.locals.payload = JSON.parse(Buffer.from(payload, "base64").toString());
     next();
   } else {
-    res.status(401).send({ response: "Invalid token. Must login again" });
+    res.status(401).send({ message: "Invalid token. Must login again" });
   }
 };
 
@@ -54,7 +54,6 @@ const validatePassword = (password, { hash, salt }) => {
   return hash === hashToVerify;
 };
 
-// TODO: need to check for query errors or failures? Also, handle sql injection
 const login = async ({ username, password }) => {
   const [rows] = await db.execute("SELECT * FROM users WHERE username = ?", [
     username,
@@ -76,7 +75,6 @@ const hashPassword = (password) => {
   return { hash, salt };
 };
 
-// TODO: need to check for query errors or failures? Also, handle sql injection
 const signup = async ({ username, password }) => {
   const { hash, salt } = hashPassword(password);
 
