@@ -1,8 +1,7 @@
 import db from "./db.js";
 import crypto from "crypto";
 
-// TODO: create secure secret
-const SECRET = "secret";
+const SECRET = "xxgczuegfo";
 
 const createJwtToken = ({ username, permissions }) => {
   const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" }))
