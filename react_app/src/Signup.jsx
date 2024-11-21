@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { SIGNUP_SUCCESSFUL, SIGNUP_ERROR } from "./user-strings";
 
 const API_VERSION = "/API/v1";
 
@@ -33,9 +34,9 @@ const Signup = () => {
     mutationFn: postSignup,
     onSuccess: (data) => {
       if (data.ok) {
-        alert("Signed up successfully!");
+        alert(SIGNUP_SUCCESSFUL);
       } else {
-        alert("An error occurred, check username entered");
+        alert(SIGNUP_ERROR);
       }
     },
   });

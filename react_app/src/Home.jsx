@@ -1,6 +1,13 @@
 import { useContext, useState } from "react";
 import { AuthContext } from "./auth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  LOADING,
+  LOADING_ERROR,
+  LOGIN_REQUIRED,
+  MAX_CALLS,
+  SPEECH_ERROR,
+} from "./user-strings";
 
 const API_VERSION = "/API/v1";
 
@@ -29,7 +36,7 @@ const Home = () => {
   const authState = useContext(AuthContext);
 
   if (!authState?.status) {
-    return <h1 className="text-center">Please log in to continue</h1>;
+    return <h1 className="text-center">{LOGIN_REQUIRED}</h1>;
   }
 
   return (
@@ -101,9 +108,10 @@ const storyAPICall = async (url, method, data = null, headers = {}) => {
   const option = {
     method: method,
     credentials: "include",
-    headers: { 
+    headers: {
       "Content-Type": "application/json",
-      ...headers },
+      ...headers,
+    },
   };
   if (data) option.body = JSON.stringify(data);
 
@@ -111,7 +119,7 @@ const storyAPICall = async (url, method, data = null, headers = {}) => {
     console.log("Story API request:", url, option);
     const response = await fetch(url, option);
     const data = await response.json();
-    console.log("Story API response:", data); 
+    console.log("Story API response:", data);
     if (!response.ok)
       throw new Error(data.error || "Error fetching database response");
     return data;
@@ -124,9 +132,8 @@ const storyAPICall = async (url, method, data = null, headers = {}) => {
 };
 
 const storyAPI = {
-  post: (url, data) => storyAPICall(url, "POST", data)
-}
-
+  post: (url, data) => storyAPICall(url, "POST", data),
+};
 
 const UserHome = () => {
   const [modelText, setModelText] = useState("");
@@ -168,7 +175,7 @@ const UserHome = () => {
     utterance.onerror = (event) => {
       console.error("Speech error:", event); // Debug log
       setIsSpeaking(false);
-      setError("Text-to-speech stopped. Please try again.");
+      setError(SPEECH_ERROR);
     };
 
     window.speechSynthesis.speak(utterance);
@@ -213,7 +220,7 @@ const UserHome = () => {
             Current API calls: {apiCallsData?.data?.api_calls ?? "loading..."}
           </p>
           {(apiCallsData?.data?.api_calls ?? 0) > 20 && (
-            <p className="text-danger">Warning: maxed free API calls</p>
+            <p className="text-danger">{MAX_CALLS}</p>
           )}
         </div>
       </div>
@@ -245,7 +252,7 @@ const UserHome = () => {
         {isSpeaking ? "Stop Reading" : "Read Story"}
       </button>
 
-      {loading && <p>Loading...</p>}
+      {loading && <p>{LOADING}</p>}
       {error && <p style={{ color: "red" }}>Error: {error}</p>}
 
       {modelText && (
@@ -259,14 +266,17 @@ const UserHome = () => {
               <button
                 onClick={async () => {
                   setSaving(true);
-                  await storyAPI.post(STORY_URL, { story: modelText, title: inputText.slice(0, 36) });
+                  await storyAPI.post(STORY_URL, {
+                    story: modelText,
+                    title: inputText.slice(0, 36),
+                  });
                   setSaving(false);
                   setSaved(true);
                 }}
                 className="btn btn-primary"
                 disabled={saving || saved}
-              > 
-              {saving ? "Saving..." : (saved ? "Story Saved": "Save Story")}
+              >
+                {saving ? "Saving..." : saved ? "Story Saved" : "Save Story"}
               </button>
             </div>
           </div>
@@ -349,8 +359,8 @@ const AdminHome = () => {
     <div>
       <h3>Admin Dashboard</h3>
       <h4>API Usage</h4>
-      {isLoading && <p>Loading data...</p>}
-      {isError && <p>Error loading data</p>}
+      {isLoading && <p>{LOADING}</p>}
+      {isError && <p>{LOADING_ERROR}</p>}
       {data && (
         <table className="table table-bordered mt-3">
           <thead>
@@ -370,8 +380,8 @@ const AdminHome = () => {
         </table>
       )}
       <h4>Endpoint Usage</h4>
-      {isLoadingEndpoints && <p>Loading data...</p>}
-      {isEndpointError && <p>Error loading data</p>}
+      {isLoadingEndpoints && <p>{LOADING}</p>}
+      {isEndpointError && <p>{LOADING_ERROR}</p>}
       {endpointData && (
         <table className="table table-bordered mt-3">
           <thead>

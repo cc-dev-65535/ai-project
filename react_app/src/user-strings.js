@@ -1,0 +1,12 @@
+export const NOT_FOUND = "404 - Not Found";
+export const SIGNUP_SUCCESSFUL = "Signed up successfully!";
+export const SIGNUP_ERROR = "A signup error occurred. Check username entered.";
+export const LOGIN_FAILED = "Login failed, check username and password";
+export const LOADING = "Loading...";
+export const LOADING_ERROR = "Error loading data";
+export const SPEECH_ERROR = "Text-to-speech stopped. Please try again.";
+export const MAX_CALLS = "Warning: maxed free API calls (20 per user)";
+export const LOGIN_REQUIRED = "Please log in to continue";
+export const DELETE_CONFIRM = "Are you sure you want to delete this story?";
+export const DELETE_ERROR = "Failed to delete story";
+export const UPDATE_ERROR = "Failed to update story title";

@@ -8,6 +8,7 @@ import Logout from "./Logout";
 import { AuthContext, loginCheck } from "./auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
+import { NOT_FOUND } from "./user-strings";
 
 const queryClient = new QueryClient();
 
@@ -46,7 +47,7 @@ export function App() {
                 path="logout"
                 element={<Logout setAuthState={setAuthState} />}
               />
-              <Route path="*" element={<h1>404 - Not Found</h1>} />
+              <Route path="*" element={<h1>{NOT_FOUND}</h1>} />
             </Route>
           </Routes>
         </BrowserRouter>

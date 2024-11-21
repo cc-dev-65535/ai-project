@@ -186,6 +186,7 @@ app.get(
   }
 );
 
+// Return 403 on not admin error
 // Returns 401 on not logged in error
 // Returns 200 on success
 app.get(
@@ -193,6 +194,10 @@ app.get(
   validateJwtToken,
   updateApiCallsCount,
   async (req, res, next) => {
+    if (res.locals.payload.permissions !== "ADMIN") {
+      res.status(403).send({ message: "Forbidden" });
+      return;
+    }
     try {
       const data = await getEndpointCallsCount();
       res.status(200).send({ data });
@@ -323,6 +328,5 @@ app.get("/docs", (req, res) => {
 app.get("/swagger.json", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "swagger.json"));
 });
-
 
 app.listen(4000);

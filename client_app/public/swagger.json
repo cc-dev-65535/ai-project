@@ -5,8 +5,9 @@
     "version": "2.0.0",
     "title": "Story Generator App API"
   },
-  "host": "localhost:4000",
+  "host": "client-app-ebon.vercel.app",
   "basePath": "/API/v1",
+  "schemes": ["https"],
   "tags": [
     {
       "name": "Authentication",
@@ -172,6 +173,74 @@
           },
           "401": { "description": "Unauthorized" },
           "403": { "description": "Forbidden" }
+        }
+      }
+    },
+    "/api-calls-endpoint": {
+      "get": {
+        "tags": ["API Usage"],
+        "summary": "Get API calls for the endpoint",
+        "description": "Retrieve the API calls count for endpoints (admin only)",
+        "responses": {
+          "200": {
+            "description": "API calls count retrieved successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "endpoint": {
+                        "type": "string"
+                      },
+                      "method": {
+                        "type": "string"
+                      },
+                      "requests": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" }
+        }
+      }
+    },
+    "/api-calls-user": {
+      "get": {
+        "tags": ["API Usage"],
+        "summary": "Get API calls for this user",
+        "description": "Retrieve the API calls count for this user",
+        "responses": {
+          "200": {
+            "description": "API calls count retrieved successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "username": {
+                        "type": "string"
+                      },
+                      "requests": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" }
         }
       }
     },

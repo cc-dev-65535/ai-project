@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { setClaims, getClaims } from "./auth";
+import { LOGIN_FAILED } from "./user-strings";
 
 const API_VERSION = "/API/v1";
 
@@ -41,7 +42,7 @@ const Login = ({ setAuthState }) => {
         });
         navigate("/");
       } else {
-        alert("Invalid username or password");
+        alert(LOGIN_FAILED);
       }
     },
   });
