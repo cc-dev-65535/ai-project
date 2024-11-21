@@ -1,5 +1,7 @@
 import express from "express";
 import "dotenv/config";
+import { fileURLToPath } from "url"; // Required for ES module __dirname equivalent
+import path from "path";
 import { callModel } from "./api.js";
 import { sanitizeJsonBody, checkEmail } from "./inputValidation.js";
 import { login, signup, validateJwtToken } from "./auth.js";
@@ -15,8 +17,11 @@ import {
   editTitle,
 } from "./apiCalls.js";
 import cors from "cors";
-import path from "path";
 import cookieParser from "cookie-parser";
+
+// Create __dirname equivalent for ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -34,7 +39,9 @@ if (process.env.NODE_ENV !== "production") {
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
+
+// Serve static files from the correct public directory
+app.use(express.static(path.join(__dirname, "public")));
 
 const API_VERSION = "/API/v1";
 
@@ -308,5 +315,14 @@ app.get(API_VERSION + "/docs", (req, res) => {
     root: path.join(path.resolve(), "public"),
   });
 });
+
+app.get("/docs", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "swagger.html"));
+});
+
+app.get("/swagger.json", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "swagger.json"));
+});
+
 
 app.listen(4000);
