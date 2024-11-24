@@ -105,6 +105,58 @@
         }
       }
     },
+    "/forgot-password": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "For getting a new password",
+        "description": "Allows a user to reset password",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "username": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successfully got reset link" },
+          "400": { "description": "Invalid username" }
+        }
+      }
+    },
+    "/reset-password": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "For getting a new password",
+        "description": "Allows a user to reset password",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successfully reset password" },
+          "400": { "description": "Invalid password or link" }
+        }
+      }
+    },
     "/api": {
       "post": {
         "tags": ["Story Generator"],

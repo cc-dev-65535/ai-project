@@ -5,6 +5,7 @@ import Stories from "./Stories";
 import Signup from "./Signup";
 import Login from "./Login";
 import Logout from "./Logout";
+import ResetPassword from "./ResetPassword";
 import { AuthContext, loginCheck } from "./auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
@@ -39,6 +40,7 @@ export function App() {
               <Route path="/" element={<Home />} />
               <Route path="stories" element={<Stories />} />
               <Route path="signup" element={<Signup />} />
+              <Route path="reset-password" element={<ResetPassword />} />
               <Route
                 path="login"
                 element={<Login setAuthState={setAuthState} />}

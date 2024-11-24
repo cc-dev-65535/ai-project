@@ -4,7 +4,13 @@ import { fileURLToPath } from "url"; // Required for ES module __dirname equival
 import path from "path";
 import { callModel } from "./api.js";
 import { sanitizeJsonBody, checkEmail } from "./inputValidation.js";
-import { login, signup, validateJwtToken } from "./auth.js";
+import {
+  login,
+  signup,
+  validateJwtToken,
+  forgotPassword,
+  resetPassword,
+} from "./auth.js";
 import {
   logEndpointCall,
   updateApiCallsCount,
@@ -94,19 +100,64 @@ app.post(API_VERSION + "/login-check", validateJwtToken, (req, res, next) => {
 
 // Returns 400 on invalid email username, or invalid password, or username already taken
 // Returns 200 on success
-app.post(API_VERSION + "/signup", checkEmail, async (req, res, next) => {
-  try {
-    if (!req.body.username || !req.body.password) {
-      res.status(400).send({ message: "Invalid username or password" });
+app.post(
+  API_VERSION + "/signup",
+  logEndpointCall,
+  checkEmail,
+  async (req, res, next) => {
+    try {
+      if (!req.body.username || !req.body.password) {
+        res.status(400).send({ message: "Invalid username or password" });
+        return;
+      }
+      await signup(req.body);
+      res.status(200).send({ message: "Signed up successfully" });
+    } catch (err) {
+      res.status(400).send({ message: "Bad request, username already taken" });
       return;
     }
-    await signup(req.body);
-    res.status(200).send({ message: "Signed up successfully" });
-  } catch (err) {
-    res.status(400).send({ message: "Bad request, username already taken" });
-    return;
   }
-});
+);
+
+// Returns 400 on invalid email username
+// Returns 200 on success
+app.post(
+  API_VERSION + "/forgot-password",
+  logEndpointCall,
+  async (req, res, next) => {
+    try {
+      if (!req.body.username) {
+        res.status(400).send({ message: "Invalid username" });
+        return;
+      }
+      await forgotPassword(req.body);
+      res.status(200).send({ message: "Forgot password link created" });
+    } catch (err) {
+      res.status(400).send({ message: "Bad request, check username" });
+      return;
+    }
+  }
+);
+
+// Returns 400 on invalid password or link
+// Returns 200 on success
+app.post(
+  API_VERSION + "/reset-password",
+  logEndpointCall,
+  async (req, res, next) => {
+    try {
+      if (!req.body.password) {
+        res.status(400).send({ message: "Invalid password" });
+        return;
+      }
+      await resetPassword(req.body, req.query);
+      res.status(200).send({ message: "Password changed" });
+    } catch (err) {
+      res.status(400).send({ message: "Bad request, check link" });
+      return;
+    }
+  }
+);
 
 /* MODEL API ROUTES */
 // Returns 400 on missing input
@@ -151,6 +202,7 @@ const sanitizeStory = (story) => {
 // Returns 200 on success
 app.get(
   API_VERSION + "/api-calls",
+  logEndpointCall,
   validateJwtToken,
   updateApiCallsCount,
   async (req, res, next) => {
@@ -191,6 +243,7 @@ app.get(
 // Returns 200 on success
 app.get(
   API_VERSION + "/api-calls-endpoint",
+  logEndpointCall,
   validateJwtToken,
   updateApiCallsCount,
   async (req, res, next) => {

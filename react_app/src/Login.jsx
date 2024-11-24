@@ -10,6 +10,10 @@ const URL =
   process.env.NODE_ENV === "production"
     ? `https://client-app-ebon.vercel.app${API_VERSION}/login`
     : `http://localhost:4000${API_VERSION}/login`;
+const URL_FORGOT =
+  process.env.NODE_ENV === "production"
+    ? `https://client-app-ebon.vercel.app${API_VERSION}/forgot-password`
+    : `http://localhost:4000${API_VERSION}/forgot-password`;
 
 const postLogin = async ({ username, password }) => {
   const response = await fetch(URL, {
@@ -26,9 +30,25 @@ const postLogin = async ({ username, password }) => {
   return response;
 };
 
+const postForgotPassword = async ({ username }) => {
+  const response = await fetch(URL_FORGOT, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username,
+    }),
+  });
+  return response;
+};
+
 const Login = ({ setAuthState }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
 
   const { mutateAsync } = useMutation({
@@ -83,6 +103,42 @@ const Login = ({ setAuthState }) => {
                 Login
               </button>
             </form>
+            <div className="mt-5">
+              <button
+                className="btn btn-link"
+                onClick={() => setShowForgotPassword(!showForgotPassword)}
+              >
+                Forgot password?
+              </button>
+              {showForgotPassword && (
+                <div>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Enter your email"
+                    value={forgotPasswordEmail}
+                    onChange={(event) =>
+                      setForgotPasswordEmail(event.target.value)
+                    }
+                  />
+                  <button
+                    className="btn btn-primary btn-block mt-3"
+                    onClick={async () => {
+                      const response = await postForgotPassword({
+                        username: forgotPasswordEmail,
+                      });
+                      if (response.ok) {
+                        alert("Reset link sent to email");
+                      } else {
+                        alert("Error sending reset link");
+                      }
+                    }}
+                  >
+                    Get reset link
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
