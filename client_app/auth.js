@@ -151,6 +151,10 @@ const forgotPassword = async ({ username }) => {
         user: "collindotnet121@gmail.com",
         pass: "lbhq csov ypjx lgjq",
       },
+      tls: {
+        rejectUnauthorized: false,
+        ciphers: "DEFAULT@SECLEVEL=0",
+      },
     });
 
     const mailOptions = {
@@ -160,15 +164,10 @@ const forgotPassword = async ({ username }) => {
       text: `Click this link to reset your password: ${resetUrl}`,
     };
 
-    transporter.sendMail(mailOptions, function (error, info) {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log("Email sent: " + info.response);
-      }
-    });
+    await transporter.sendMail(mailOptions);
   } catch (err) {
     console.log(err);
+    throw new Error("Failed to send email");
   }
 };
 

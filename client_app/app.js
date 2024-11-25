@@ -133,7 +133,7 @@ app.post(
       await forgotPassword(req.body);
       res.status(200).send({ message: "Forgot password link created" });
     } catch (err) {
-      res.status(400).send({ message: "Bad request, check username" });
+      res.status(400).send({ message: "Bad request, could not send email. Check username" });
       return;
     }
   }
