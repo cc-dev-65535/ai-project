@@ -10,7 +10,13 @@ const createJwtToken = ({ username, permissions }) => {
     .replace(/=/g, "")
     .replace(/\+/g, "-")
     .replace(/\//g, "_");
-  const payload = Buffer.from(JSON.stringify({ username, permissions }))
+  const payload = Buffer.from(
+    JSON.stringify({
+      username,
+      permissions,
+      expiry: Date.now() + 1000 * 60 * 60 * 25,
+    })
+  )
     .toString("base64")
     .replace(/=/g, "")
     .replace(/\+/g, "-")
@@ -23,6 +29,11 @@ const createJwtToken = ({ username, permissions }) => {
     .replace(/\+/g, "-")
     .replace(/\//g, "_");
   return `${header}.${payload}.${signature}`;
+};
+
+const validateExpiry = (payload) => {
+  const { expiry } = JSON.parse(Buffer.from(payload, "base64").toString());
+  return expiry > Date.now();
 };
 
 const validateJwtToken = (req, res, next) => {
@@ -39,7 +50,7 @@ const validateJwtToken = (req, res, next) => {
     .replace(/=/g, "")
     .replace(/\+/g, "-")
     .replace(/\//g, "_");
-  if (signature === signatureToVerify) {
+  if (signature === signatureToVerify && validateExpiry(payload)) {
     res.locals.payload = JSON.parse(Buffer.from(payload, "base64").toString());
     next();
   } else {
