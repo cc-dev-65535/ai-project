@@ -14,7 +14,7 @@ const createJwtToken = ({ username, permissions }) => {
     JSON.stringify({
       username,
       permissions,
-      expiry: Date.now() + 1000 * 60 * 60 * 25,
+      expiry: Date.now() + 1000 * 60 * 60 * 48,
     })
   )
     .toString("base64")
