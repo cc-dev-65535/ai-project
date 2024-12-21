@@ -158,7 +158,7 @@ const forgotPassword = async ({ username }) => {
     });
 
     const mailOptions = {
-      from: "collindotnet121@gmail.com",
+      from: process.env.EMAIL,
       to: username,
       subject: "Reset password",
       text: `Click this link to reset your password: ${resetUrl}`,
